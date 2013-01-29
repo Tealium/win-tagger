@@ -19,6 +19,14 @@ using System.Collections;
 
 namespace Tealium
 {
+    internal enum WebViewStatus
+    {
+        Unknown,
+        Loading,
+        Loaded,
+        Failure
+    }
+
     public sealed class TealiumTagger
     {
         #region Private Members
@@ -29,7 +37,7 @@ namespace Tealium
         Dictionary<string, string> baseVariables;
         ConcurrentDictionary<string, object> providedVariables;
         bool connectivityStatus = true;
-        bool webViewReady = false;
+        WebViewStatus webViewStatus = WebViewStatus.Unknown;
         ConcurrentQueue<string> requestQueue = new ConcurrentQueue<string>();
         DispatcherTimer queueTimer = new DispatcherTimer() { Interval = TimeSpan.FromMilliseconds(200) };
 
@@ -102,17 +110,33 @@ namespace Tealium
         {
             queueTimer.Tick += queueTimer_Tick;
             taggerWebView = new WebView();
-            LoadCompletedEventHandler h = null;
-            h = (s, e) =>
-            {
-                taggerWebView.LoadCompleted -= h;
-                webViewReady = true;
-                ProcessRequestQueue();
-            };
-            taggerWebView.LoadCompleted += h;
-            string trackingPage = GetWebViewUrl();
-            taggerWebView.Navigate(new Uri(trackingPage));
 
+            OpenTrackingPage();
+        }
+
+        private void OpenTrackingPage()
+        {
+            taggerWebView.NavigationFailed += taggerWebView_NavigationFailed;
+            taggerWebView.LoadCompleted += taggerWebView_LoadCompleted;
+
+            string trackingPage = GetWebViewUrl();
+            webViewStatus = WebViewStatus.Loading;
+            taggerWebView.Navigate(new Uri(trackingPage));
+        }
+
+        void taggerWebView_LoadCompleted(object sender, NavigationEventArgs e)
+        {
+            taggerWebView.NavigationFailed -= taggerWebView_NavigationFailed;
+            taggerWebView.LoadCompleted -= taggerWebView_LoadCompleted;
+            webViewStatus = WebViewStatus.Loaded;
+            ProcessRequestQueue();
+        }
+
+        void taggerWebView_NavigationFailed(object sender, WebViewNavigationFailedEventArgs e)
+        {
+            taggerWebView.NavigationFailed -= taggerWebView_NavigationFailed;
+            taggerWebView.LoadCompleted -= taggerWebView_LoadCompleted;
+            webViewStatus = WebViewStatus.Failure;
         }
 
         private void ErrorRootIsNotFrame()
@@ -219,6 +243,7 @@ namespace Tealium
             bool newConnectivityStatus = System.Net.NetworkInformation.NetworkInterface.GetIsNetworkAvailable();
             if (newConnectivityStatus != connectivityStatus && newConnectivityStatus)
             {
+                //run following command on UI thread
                 CoreWindow.GetForCurrentThread().Dispatcher.RunAsync(CoreDispatcherPriority.Normal, () =>
                 {
                     ProcessRequestQueue();
@@ -456,9 +481,17 @@ namespace Tealium
 
         private void ProcessRequestQueue()
         {
-            if (!webViewReady || !IsOnline() || queueTimer.IsEnabled || requestQueue.IsEmpty)
+            if (webViewStatus != WebViewStatus.Loaded
+                    || !IsOnline()
+                    || queueTimer.IsEnabled
+                    || requestQueue.IsEmpty)
+            {
+                if (webViewStatus == WebViewStatus.Failure && IsOnline())
+                    OpenTrackingPage(); //if the app was offline when launched, the tracking page wouldn't have loaded, so try loading it now.
                 return;
+            }
 
+            //kick off timer to process the queue
             queueTimer.Start();
 
         }
