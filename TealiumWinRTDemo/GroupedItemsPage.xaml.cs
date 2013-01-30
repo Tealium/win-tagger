@@ -73,6 +73,7 @@ namespace TealiumWinRTDemo
             // by passing required information as a navigation parameter
             var itemId = ((SampleDataItem)e.ClickedItem).UniqueId;
             this.Frame.Navigate(typeof(ItemDetailPage), itemId);
+            TealiumTagger.Instance.TrackItemClicked(itemId);
         }
     }
 }
