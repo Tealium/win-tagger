@@ -13,6 +13,7 @@ using Windows.UI.Xaml.Data;
 using Windows.UI.Xaml.Input;
 using Windows.UI.Xaml.Media;
 using Windows.UI.Xaml.Navigation;
+using Tealium;
 
 // The Item Detail Page item template is documented at http://go.microsoft.com/fwlink/?LinkId=234232
 
@@ -22,6 +23,9 @@ namespace TealiumWinRTDemo
     /// A page that displays details for a single item within a group while allowing gestures to
     /// flip through other items belonging to the same group.
     /// </summary>
+    [TrackPageView("item-details")]
+    [TrackProperty("test-param", "test-value")]
+    [TrackParameter("item-id")]
     public sealed partial class ItemDetailPage : TealiumWinRTDemo.Common.LayoutAwarePage
     {
         public ItemDetailPage()

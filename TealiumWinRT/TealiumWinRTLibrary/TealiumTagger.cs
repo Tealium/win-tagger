@@ -259,15 +259,15 @@ namespace Tealium
                 var page = ((Frame)sender).Content;
                 if (page != null)
                 {
-                    ReportPageNavigation(page);
+                    ReportPageNavigation(page, e.Parameter);
                 }
             }
 
         }
 
-        private void ReportPageNavigation(object page)
+        private void ReportPageNavigation(object page, object parameter = null)
         {
-            Dictionary<string, string> vars = new Dictionary<string, string>();
+            Dictionary<string, object> vars = new Dictionary<string, object>();
             string pageName = null;
 
             var props = page.GetType().GetTypeInfo().GetCustomAttributes<TrackPropertyAttribute>();
@@ -276,10 +276,32 @@ namespace Tealium
                 foreach (var item in props)
                 {
                     if (item.Name != null && item.Value != null)
-                        vars.Add(item.Name, item.Value);
+                        vars[item.Name] = item.Value;
                 }
 
             }
+
+            var pars = page.GetType().GetTypeInfo().GetCustomAttributes<TrackParameterAttribute>();
+            if (pars != null && pars.Any())
+            {
+                foreach (var item in pars)
+                {
+                    if (!string.IsNullOrEmpty(item.VariableName))
+                    {
+                        if (!string.IsNullOrEmpty(item.ParameterName) && parameter  != null)
+                        {
+                            vars[item.VariableName] = LookupProperty(item.ParameterName, parameter);
+                        }
+                        else
+                        {
+                            vars[item.VariableName] = parameter;
+                        }
+                    }
+                }
+
+            }
+
+            
             var name = page.GetType().GetTypeInfo().GetCustomAttribute<TrackPageViewAttribute>();
             if (name != null)
                 pageName = name.Value;
@@ -294,6 +316,35 @@ namespace Tealium
                 //need to wait until data loads, just set vars for later
                 this.SetVariables(vars);
             }
+        }
+
+        private object LookupProperty(string p, object parameter)
+        {
+            //check for properties w/ that name first
+            var props = parameter.GetType().GetRuntimeProperties();
+            foreach (var item in props)
+            {
+                if (string.Equals(item.Name, p, StringComparison.OrdinalIgnoreCase))
+                {
+                    var s = item.GetValue(null);
+                    if (s != null)
+                        return s.ToString();
+                }
+
+            }
+            //if not found, check the fields
+            var fields = parameter.GetType().GetRuntimeFields();
+            foreach (var item in props)
+            {
+                if (string.Equals(item.Name, p, StringComparison.OrdinalIgnoreCase))
+                {
+                    var s = item.GetValue(null);
+                    if (s != null)
+                        return s.ToString();
+                }
+
+            } 
+            return null;
         }
 
         void rootFrame_Navigating(object sender, Windows.UI.Xaml.Navigation.NavigatingCancelEventArgs e)

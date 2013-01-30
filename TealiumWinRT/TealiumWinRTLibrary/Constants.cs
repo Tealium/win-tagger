@@ -8,7 +8,7 @@ namespace Tealium
 {
     internal class Constants
     {
-        internal const string TRACKER_EMBED_URL_FORMAT = "{0}://speclet.foo/foo";// "{0}://tags.tiqcdn.com/utag/{1}/{2}/{3}/mobile.html";
+        internal const string TRACKER_EMBED_URL_FORMAT = "{0}://tags.tiqcdn.com/utag/{1}/{2}/{3}/mobile.html";
         internal const string UTAG_INVOKE_SCRIPT = "utag.track('{0}',{1}, function() {{TealiumTaggerCallback.callback();}});";
         internal const string QUEUE_STORAGE_PATH = "_tealium_queue";
 
