@@ -69,7 +69,9 @@ namespace Tealium
         {
             get
             {
-                TealiumStatusLog.Error("TealiumTagger instance has not been initialized. Please initialize in your App.xaml.cs OnLaunched handler.");
+                if (instance == null)
+                    TealiumStatusLog.Error("TealiumTagger instance has not been initialized. Please initialize in your App.xaml.cs OnLaunched handler.");
+
                 return instance;
             }
         }
