@@ -106,10 +106,11 @@
     <Compile Include="Attributes\TrackPageViewAttribute.cs" />
     <Compile Include="Attributes\TrackPropertyAttribute.cs" />
     <Compile Include="Enumerations\TealiumEnvironment.cs" />
+    <Compile Include="Enumerations\WebViewStatus.cs" />
     <Compile Include="Utility\ExtensionMethods.cs" />
     <Compile Include="XAML\ParameterValue.cs" />
     <Compile Include="XAML\TealiumEvent.cs" />
-    <Compile Include="XAML\TealiumEventTagger.cs" />
+    <Compile Include="XAML\TealiumEventBehavior.cs" />
     <Compile Include="Attributes\TrackBaseAttribute.cs" />
     <Compile Include="Constants.cs" />
     <Compile Include="Exceptions\TealiumExceptions.cs" />

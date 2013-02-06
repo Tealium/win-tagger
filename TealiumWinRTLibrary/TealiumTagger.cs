@@ -19,14 +19,9 @@ using System.Collections;
 
 namespace Tealium
 {
-    internal enum WebViewStatus
-    {
-        Unknown,
-        Loading,
-        Loaded,
-        Failure
-    }
-
+    /// <summary>
+    /// 
+    /// </summary>
     public sealed class TealiumTagger
     {
         #region Private Members

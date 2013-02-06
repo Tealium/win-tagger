@@ -16,6 +16,11 @@ namespace Tealium
     public class TealiumEvent : DependencyObject
     {
 
+        public TealiumEvent()
+        {
+            this.Parameters = new Collection<ParameterValue>();
+        }
+
         /// <summary>
         /// The name of the event to listen for, belonging to the control this is attached to.
         /// </summary>
@@ -27,7 +32,7 @@ namespace Tealium
 
         // Using a DependencyProperty as the backing store for EventName.  This enables animation, styling, binding, etc...
         public static readonly DependencyProperty EventNameProperty =
-            DependencyProperty.Register("EventName", typeof(string), typeof(TealiumEvent), new PropertyMetadata(string.Empty, OnEventNameChanged));
+            DependencyProperty.Register("EventName", typeof(string), typeof(TealiumEvent), new PropertyMetadata(null, OnEventNameChanged));
 
         private static void OnEventNameChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
         {
@@ -60,7 +65,7 @@ namespace Tealium
 
         // Using a DependencyProperty as the backing store for Parameters.  This enables animation, styling, binding, etc...
         public static readonly DependencyProperty ParametersProperty =
-            DependencyProperty.Register("Parameters", typeof(ICollection<ParameterValue>), typeof(TealiumEvent), new PropertyMetadata(new Collection<ParameterValue>()));
+            DependencyProperty.Register("Parameters", typeof(ICollection<ParameterValue>), typeof(TealiumEvent), new PropertyMetadata(null));
 
 
     }

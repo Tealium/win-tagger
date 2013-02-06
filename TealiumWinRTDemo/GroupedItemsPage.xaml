@@ -50,12 +50,12 @@
             IsSwipeEnabled="false" 
             IsItemClickEnabled="True"
             ItemClick="ItemView_ItemClick">
-            <tealium:TealiumEventTagger.Event>
+            <tealium:TealiumEventBehavior.Event>
                 <tealium:TealiumEvent EventName="ItemClick" VariableName="click">
                     <tealium:ParameterValue PropertyName="Foo1" PropertyValue="Bar1" />
                     <tealium:ParameterValue PropertyName="Foo2" PropertyValue="{Binding RelativeSource={RelativeSource Mode=TemplatedParent}}" />
                 </tealium:TealiumEvent>
-            </tealium:TealiumEventTagger.Event>
+            </tealium:TealiumEventBehavior.Event>
 
             <GridView.ItemsPanel>
                 <ItemsPanelTemplate>                        
@@ -75,9 +75,9 @@
                                         <TextBlock Text="{Binding Title}" Margin="3,-7,10,10" Style="{StaticResource GroupHeaderTextStyle}" />
                                         <TextBlock Text="{StaticResource ChevronGlyph}" FontFamily="Segoe UI Symbol" Margin="0,-7,0,10" Style="{StaticResource GroupHeaderTextStyle}"/>
                                     </StackPanel>
-                                    <tealium:TealiumEventTagger.Event>
+                                    <tealium:TealiumEventBehavior.Event>
                                         <tealium:TealiumEvent EventName="Click" VariableName="link" />
-                                    </tealium:TealiumEventTagger.Event>
+                                    </tealium:TealiumEventBehavior.Event>
                                 </Button>
                             </Grid>
                         </DataTemplate>

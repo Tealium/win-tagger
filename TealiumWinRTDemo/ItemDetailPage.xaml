@@ -9,6 +9,7 @@
     xmlns:common="using:TealiumWinRTDemo.Common"
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    xmlns:tealium="using:Tealium"
     mc:Ignorable="d">
 
     <Page.Resources>
@@ -19,6 +20,10 @@
             Source="{Binding Items}"
             d:Source="{Binding AllGroups[0].Items, Source={d:DesignInstance Type=data:SampleDataSource, IsDesignTimeCreatable=True}}"/>
     </Page.Resources>
+    <tealium:TealiumEventBehavior.Event>
+        <tealium:TealiumEvent EventName="Loaded" VariableName="view">
+        </tealium:TealiumEvent>
+    </tealium:TealiumEventBehavior.Event>
 
     <!--
         This grid acts as a root panel for the page that defines two rows:
