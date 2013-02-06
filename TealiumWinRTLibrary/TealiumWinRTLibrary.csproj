@@ -109,6 +109,7 @@
     <Compile Include="Diagnostics\TealiumStatusLog.cs" />
     <Compile Include="Enumerations\TealiumEnvironment.cs" />
     <Compile Include="Enumerations\WebViewStatus.cs" />
+    <Compile Include="IAnalyticsTagger.cs" />
     <Compile Include="Utility\ExtensionMethods.cs" />
     <Compile Include="XAML\ParameterValue.cs" />
     <Compile Include="XAML\TealiumEvent.cs" />

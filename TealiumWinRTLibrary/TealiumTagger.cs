@@ -22,7 +22,7 @@ namespace Tealium
     /// The majority of use cases will leverage the TealiumTagger.TrackScreenViewed, TrackItemClicked, and TrackCustomEvent methods.  Custom attributes and
     /// XAML attached properties also exist for convenience.
     /// </summary>
-    public sealed class TealiumTagger
+    public sealed class TealiumTagger : Tealium.IAnalyticsTagger
     {
         #region Private Members
 
