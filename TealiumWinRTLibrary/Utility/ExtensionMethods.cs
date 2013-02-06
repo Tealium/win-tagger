@@ -1,12 +1,8 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace Windows.UI.Xaml
 {
-    public static class XamlExtensions
+    internal static class XamlExtensions
     {
         /// <summary>
         /// Waits for a control to render its first frame on screen, then executes the specified action.

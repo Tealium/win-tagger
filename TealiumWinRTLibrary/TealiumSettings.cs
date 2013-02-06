@@ -1,9 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
+﻿
 namespace Tealium
 {
     public class TealiumSettings
@@ -33,10 +28,6 @@ namespace Tealium
         /// Whether traffic should run over https (true) or http (false).
         /// </summary>
         public bool UseSSL { get; set; }
-
-
-        //public string StartupEventName { get; set; }
-        //public string ShutdownEventName { get; set; }
 
 
         /// <summary>

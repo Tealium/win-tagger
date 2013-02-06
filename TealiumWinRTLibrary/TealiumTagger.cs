@@ -1,26 +1,26 @@
 ﻿using System;
+using System.Collections;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 using System.Net;
-using System.Text;
+using System.Net.NetworkInformation;
+using System.Reflection;
 using System.Threading.Tasks;
+using Tealium.Utility;
+using Windows.ApplicationModel;
+using Windows.UI.Core;
 using Windows.UI.Xaml;
 using Windows.UI.Xaml.Controls;
-using Windows.UI.Xaml.Media;
 using Windows.UI.Xaml.Navigation;
-using System.Reflection;
-using System.Net.NetworkInformation;
-using Windows.UI.Core;
-using Windows.ApplicationModel;
-using Tealium.Utility;
-using System.Collections;
 
 namespace Tealium
 {
     /// <summary>
-    /// 
+    /// The core component for integration with Tealium.  Must be initialized via the TealiumTagger.Initialize static method prior to calling any member methods.
+    /// The majority of use cases will leverage the TealiumTagger.TrackScreenViewed, TrackItemClicked, and TrackCustomEvent methods.  Custom attributes and
+    /// XAML attached properties also exist for convenience.
     /// </summary>
     public sealed class TealiumTagger
     {
@@ -40,44 +40,62 @@ namespace Tealium
 
         #region Singleton Implementation
 
+        /// <summary>
+        /// Initializes the singleton instance of the TealiumTagger with the specified settings.
+        /// Assumes that the root visual of the application is an instance of Frame.
+        /// </summary>
+        /// <param name="settings"></param>
         public static void Initialize(TealiumSettings settings)
         {
             instance = new TealiumTagger(settings);
         }
 
+        /// <summary>
+        /// Initializes the singleton instance of the TealiumTagger with the specified settings and specified Frame instance.
+        /// This version is useful when the root visual of the application is not a Frame.
+        /// </summary>
+        /// <param name="rootFrame"></param>
+        /// <param name="settings"></param>
         public static void Initialize(Frame rootFrame, TealiumSettings settings)
         {
             instance = new TealiumTagger(rootFrame, settings);
         }
 
-        public static void Shutdown()
-        {
 
-        }
-
-        #endregion Singleton Implementation
-
+        /// <summary>
+        /// Singleton instance of the TealiumTagger accessible to the calling application.
+        /// </summary>
         public static TealiumTagger Instance
         {
             get
             {
+                //TODO: exception if not initialized
                 return instance;
             }
         }
         private static TealiumTagger instance;
 
-        protected TealiumTagger(TealiumSettings settings)
+        #endregion Singleton Implementation
+
+
+        #region Constructors
+
+        private TealiumTagger(TealiumSettings settings)
         {
             this.settings = settings;
             RegisterWithRootFrame();
         }
 
-        protected TealiumTagger(Frame rootFrame, TealiumSettings settings)
+        private TealiumTagger(Frame rootFrame, TealiumSettings settings)
         {
             this.settings = settings;
             this.rootFrame = rootFrame;
             RegisterWithRootFrame();
         }
+
+        #endregion Constructors
+
+        #region Initialization
 
         private void RegisterWithRootFrame()
         {
@@ -117,21 +135,6 @@ namespace Tealium
             string trackingPage = GetWebViewUrl();
             webViewStatus = WebViewStatus.Loading;
             taggerWebView.Navigate(new Uri(trackingPage));
-        }
-
-        void taggerWebView_LoadCompleted(object sender, NavigationEventArgs e)
-        {
-            taggerWebView.NavigationFailed -= taggerWebView_NavigationFailed;
-            taggerWebView.LoadCompleted -= taggerWebView_LoadCompleted;
-            webViewStatus = WebViewStatus.Loaded;
-            ProcessRequestQueue();
-        }
-
-        void taggerWebView_NavigationFailed(object sender, WebViewNavigationFailedEventArgs e)
-        {
-            taggerWebView.NavigationFailed -= taggerWebView_NavigationFailed;
-            taggerWebView.LoadCompleted -= taggerWebView_LoadCompleted;
-            webViewStatus = WebViewStatus.Failure;
         }
 
         private void ErrorRootIsNotFrame()
@@ -180,7 +183,25 @@ namespace Tealium
             }
         }
 
+        #endregion Initialization
+
+
         #region Event Handlers
+
+        void taggerWebView_LoadCompleted(object sender, NavigationEventArgs e)
+        {
+            taggerWebView.NavigationFailed -= taggerWebView_NavigationFailed;
+            taggerWebView.LoadCompleted -= taggerWebView_LoadCompleted;
+            webViewStatus = WebViewStatus.Loaded;
+            ProcessRequestQueue();
+        }
+
+        void taggerWebView_NavigationFailed(object sender, WebViewNavigationFailedEventArgs e)
+        {
+            taggerWebView.NavigationFailed -= taggerWebView_NavigationFailed;
+            taggerWebView.LoadCompleted -= taggerWebView_LoadCompleted;
+            webViewStatus = WebViewStatus.Failure;
+        }
 
         void Current_VisibilityChanged(object sender, Windows.UI.Core.VisibilityChangedEventArgs e)
         {
@@ -205,7 +226,7 @@ namespace Tealium
             Debug.WriteLine("Application.Current.Resuming");
             await LoadPersistedQueue();
             Debug.WriteLine("Queue loaded from disk");
-            //SubscribeEvents();
+            
         }
 
         async void Current_Suspending(object sender, Windows.ApplicationModel.SuspendingEventArgs e)
@@ -267,10 +288,231 @@ namespace Tealium
 
         }
 
+        void rootFrame_Navigating(object sender, Windows.UI.Xaml.Navigation.NavigatingCancelEventArgs e)
+        {
+            SetVariables(null); //clear previous vars so they don't interfere w/ the next page
+        }
+
+        void queueTimer_Tick(object sender, object e)
+        {
+            if (requestQueue.IsEmpty)
+                queueTimer.Stop();
+
+            string invokeScript = string.Empty;
+            if (requestQueue.TryDequeue(out invokeScript) && !string.IsNullOrWhiteSpace(invokeScript))
+            {
+                try
+                {
+                    taggerWebView.InvokeScript("eval", new[] { invokeScript });
+                    Debug.WriteLine("*********{0}", invokeScript);
+                }
+                catch (Exception ex)
+                {
+                    //TODO: logging if request failed
+                    Debugger.Break();
+                }
+            }
+
+        }
+
+
+        #endregion Event Handlers
+
+
+        #region Public API Surface
+
+        /// <summary>
+        /// Adds the supplied collection of name/value pairs to the collection of variables.  These values will be persisted between calls until ClearVariables is called.
+        /// </summary>
+        /// <param name="variables"></param>
+        public void SetVariables(IDictionary variables)
+        {
+            if (variables == null)
+            {
+                providedVariables = null;
+                return;
+            }
+            providedVariables = new ConcurrentDictionary<string, object>();
+            var e = variables.GetEnumerator();
+            while (e.MoveNext())
+            {
+                providedVariables.TryAdd(e.Key.ToString(), e.Value);
+            }
+        }
+
+        /// <summary>
+        /// Adds an individual name/value pair to the persisted collection of variables.
+        /// </summary>
+        /// <param name="name"></param>
+        /// <param name="value"></param>
+        public void SetVariable(string name, string value)
+        {
+            if (providedVariables == null)
+                providedVariables = new ConcurrentDictionary<string, object>();
+            providedVariables[name] = value;
+        }
+
+        /// <summary>
+        /// Reports a click/link event with the specified details.
+        /// Variables that have the same name as persisted variables set by SetVariables will take precedence.  All variables passed to this call will not be persisted.
+        /// </summary>
+        /// <param name="itemName"></param>
+        /// <param name="variables"></param>
+        public void TrackItemClicked(string itemName, IDictionary variables = null)
+        {
+            if (variables == null)
+                variables = new Dictionary<string, string>();
+
+            variables[settings.ClickMetricIdParam] = itemName;
+            TrackCustomEvent(settings.ClickMetricEventName, variables);
+        }
+
+        /// <summary>
+        /// Reports a page view event with the specified details.
+        /// Variables that have the same name as persisted variables set by SetVariables will take precedence.  All variables passed to this call will not be persisted.
+        /// </summary>
+        /// <param name="viewName"></param>
+        /// <param name="variables"></param>
+        public void TrackScreenViewed(string viewName, IDictionary variables = null)
+        {
+            //TODO: implementation question - should the page name be persisted in providedVariables for future analytics calls on the same screen?
+            if (variables == null)
+                variables = new Dictionary<string, string>();
+
+            variables[settings.ViewMetricIdParam] = viewName;
+            TrackCustomEvent(settings.ViewMetricEventName, variables);
+        }
+
+        /// <summary>
+        /// Reports a custom event with the specified details.
+        /// Variables that have the same name as persisted variables set by SetVariables will take precedence.  All variables passed to this call will not be persisted.
+        /// </summary>
+        /// <param name="eventName"></param>
+        /// <param name="variables"></param>
+        public void TrackCustomEvent(string eventName, IDictionary variables)
+        {
+            Dictionary<string, string> variablesToSend = new Dictionary<string, string>(baseVariables);
+            if (providedVariables != null)
+            {
+                foreach (var item in providedVariables)
+                {
+                    if (item.Value != null)
+                        variablesToSend[item.Key] = item.Value.ToString();
+                    else
+                        variablesToSend[item.Key] = string.Empty;
+
+                }
+            }
+
+            if (variables != null)
+            {
+                var e = variables.GetEnumerator();
+                while (e.MoveNext())
+                {
+                    if (e.Value != null)
+                        variablesToSend[e.Key.ToString()] = e.Value.ToString();
+                    else
+                        variablesToSend[e.Key.ToString()] = string.Empty;
+
+                }
+                
+            }
+
+            string jsonParams = GetJson(variablesToSend);
+            SendEvent(eventName, jsonParams);
+
+        }
+
+
+        #endregion Public API Surface
+
+
+        #region Configuration
+
+        private string GetWebViewUrl()
+        {
+            return string.Format(Constants.TRACKER_EMBED_URL_FORMAT,
+                    settings.UseSSL ? "https" : "http",
+                    settings.Account,
+                    settings.Profile,
+                    GetEnvironmentString(settings.Environment));
+        }
+
+        private bool SettingsValid()
+        {
+            string embedUrl = GetWebViewUrl();
+            return (taggerWebView != null && !string.IsNullOrEmpty(embedUrl) && Uri.IsWellFormedUriString(embedUrl, UriKind.Absolute));
+        }
+
+        private object GetEnvironmentString(TealiumEnvironment tealiumEnvironment)
+        {
+            string env = string.Empty;
+            switch (tealiumEnvironment)
+            {
+                case TealiumEnvironment.TealiumTargetDev:
+                    env = Constants.ENV_DEV;
+                    break;
+                case TealiumEnvironment.TealiumTargetQA:
+                    env = Constants.ENV_QA;
+                    break;
+                case TealiumEnvironment.TealiumTargetProd:
+                    env = Constants.ENV_PROD;
+                    break;
+                default:
+                    env = Constants.ENV_DEV;
+                    break;
+            }
+            return env;
+        }
+
+        #endregion Configuration
+
+        #region Initialization
+
+        private bool IsFrameReady()
+        {
+            return taggerWebView.Source != null;
+        }
+
+        #endregion Initialization
+
+        #region Reporting
+
+        private string GetJson(Dictionary<string, string> variablesToSend)
+        {
+            if (variablesToSend == null || variablesToSend.Count == 0)
+                return "{ }"; //equivalent to string.Empty for our purposes
+
+            string v = string.Empty;
+            foreach (var item in variablesToSend)
+            {
+                if (item.Key != null && item.Value != null)
+                {
+                    if (v != string.Empty)
+                        v += ",";
+                    v += string.Format("\"{0}\": \"{1}\"", WebUtility.HtmlEncode(item.Key), WebUtility.HtmlEncode(item.Value));
+                }
+            }
+            return "{ " + v + " }";
+        }
+
+        private void SendEvent(string eventName, string jsonParams)
+        {
+            if (!SettingsValid())
+                return;
+
+            string invokeScript = string.Format(Constants.UTAG_INVOKE_SCRIPT,
+                    eventName, jsonParams);
+
+            requestQueue.Enqueue(invokeScript);
+            ProcessRequestQueue();
+
+        }
+
         private void ReportPageNavigation(object page, object parameter = null)
         {
             string pageName = null;
-            
+
             var name = page.GetType().GetTypeInfo().GetCustomAttribute<TrackPageViewAttribute>();
             if (name != null)
                 pageName = name.Value;
@@ -346,126 +588,19 @@ namespace Tealium
                         return s.ToString();
                 }
 
-            } 
+            }
             return null;
         }
 
-        void rootFrame_Navigating(object sender, Windows.UI.Xaml.Navigation.NavigatingCancelEventArgs e)
+        #endregion Reporting
+
+        #region Offline
+
+        private bool IsOnline()
         {
-            SetVariables(null); //clear previous vars so they don't interfere w/ the next page
+            connectivityStatus = System.Net.NetworkInformation.NetworkInterface.GetIsNetworkAvailable();
+            return connectivityStatus;
         }
-
-        void queueTimer_Tick(object sender, object e)
-        {
-            if (requestQueue.IsEmpty)
-                queueTimer.Stop();
-
-            string invokeScript = string.Empty;
-            if (requestQueue.TryDequeue(out invokeScript) && !string.IsNullOrWhiteSpace(invokeScript))
-            {
-                try
-                {
-                    taggerWebView.InvokeScript("eval", new[] { invokeScript });
-                    Debug.WriteLine("*********{0}", invokeScript);
-                }
-                catch (Exception ex)
-                {
-                    //TODO: logging if request failed
-                    Debugger.Break();
-                }
-            }
-
-        }
-
-
-        #endregion Event Handlers
-
-
-        #region Public API Surface
-
-        public void SetVariables(IDictionary variables)
-        {
-            if (variables == null)
-            {
-                providedVariables = null;
-                return;
-            }
-            providedVariables = new ConcurrentDictionary<string, object>();
-            var e = variables.GetEnumerator();
-            while (e.MoveNext())
-            {
-                providedVariables.TryAdd(e.Key.ToString(), e.Value);
-            }
-        }
-
-        public void SetVariable(string name, string value)
-        {
-            if (providedVariables == null)
-                providedVariables = new ConcurrentDictionary<string, object>();
-            providedVariables[name] = value;
-        }
-
-        public void TrackItemClicked(string itemName, IDictionary variables = null)
-        {
-            if (variables == null)
-                variables = new Dictionary<string, string>();
-
-            variables[settings.ClickMetricIdParam] = itemName;
-            TrackCustomEvent(settings.ClickMetricEventName, variables);
-        }
-
-
-        public void TrackScreenViewed(string viewName, IDictionary variables = null)
-        {
-            //TODO: implementation question - should the page name be persisted in providedVariables for future analytics calls on the same screen?
-            if (variables == null)
-                variables = new Dictionary<string, string>();
-
-            variables[settings.ViewMetricIdParam] = viewName;
-            TrackCustomEvent(settings.ViewMetricEventName, variables);
-        }
-
-        public void TrackCustomEvent(string eventName, IDictionary variables)
-        {
-            Dictionary<string, string> variablesToSend = new Dictionary<string, string>(baseVariables);
-            if (providedVariables != null)
-            {
-                foreach (var item in providedVariables)
-                {
-                    if (item.Value != null)
-                        variablesToSend[item.Key] = item.Value.ToString();
-                    else
-                        variablesToSend[item.Key] = string.Empty;
-
-                }
-            }
-
-            if (variables != null)
-            {
-                var e = variables.GetEnumerator();
-                while (e.MoveNext())
-                {
-                    if (e.Value != null)
-                        variablesToSend[e.Key.ToString()] = e.Value.ToString();
-                    else
-                        variablesToSend[e.Key.ToString()] = string.Empty;
-
-                }
-                
-            }
-
-            string jsonParams = GetJson(variablesToSend);
-            SendEvent(eventName, jsonParams);
-
-        }
-
-
-        #endregion Public API Surface
-
-
-        #region Utility Methods
-
-
 
         private async Task LoadPersistedQueue()
         {
@@ -478,81 +613,6 @@ namespace Tealium
                     requestQueue.Enqueue(val);
                 }
             }
-        }
-
-        private bool SettingsValid()
-        {
-            string embedUrl = GetWebViewUrl();
-            return (taggerWebView != null && !string.IsNullOrEmpty(embedUrl) && Uri.IsWellFormedUriString(embedUrl, UriKind.Absolute));
-        }
-
-
-        private bool IsFrameReady()
-        {
-            return taggerWebView.Source != null;
-        }
-
-
-        private string GetWebViewUrl()
-        {
-            return string.Format(Constants.TRACKER_EMBED_URL_FORMAT, 
-                    settings.UseSSL ?  "https" : "http",
-                    settings.Account, 
-                    settings.Profile, 
-                    GetEnvironmentString(settings.Environment));
-        }
-
-        private object GetEnvironmentString(TealiumEnvironment tealiumEnvironment)
-        {
-            string env = string.Empty;
-            switch (tealiumEnvironment)
-            {
-                case TealiumEnvironment.TealiumTargetDev:
-                    env = Constants.ENV_DEV;
-                    break;
-                case TealiumEnvironment.TealiumTargetQA:
-                    env = Constants.ENV_QA;
-                    break;
-                case TealiumEnvironment.TealiumTargetProd:
-                    env = Constants.ENV_PROD;
-                    break;
-                default:
-                    env = Constants.ENV_DEV;
-                    break;
-            }
-            return env;
-        }
-
-        private string GetJson(Dictionary<string, string> variablesToSend)
-        {
-            if (variablesToSend == null || variablesToSend.Count == 0)
-                return "{ }"; //equivalent to string.Empty for our purposes
-
-            string v = string.Empty;
-            foreach (var item in variablesToSend)
-            {
-                if (item.Key != null && item.Value != null)
-                {
-                    if (v != string.Empty)
-                        v += ",";
-                    v += string.Format("\"{0}\": \"{1}\"", WebUtility.HtmlEncode(item.Key), WebUtility.HtmlEncode(item.Value));
-                }
-            }
-            return "{ " + v + " }";
-        }
-
-
-        private void SendEvent(string eventName, string jsonParams)
-        {
-            if (!SettingsValid())
-                return;
-
-            string invokeScript = string.Format(Constants.UTAG_INVOKE_SCRIPT,
-                    eventName, jsonParams);
-
-            requestQueue.Enqueue(invokeScript);
-            ProcessRequestQueue();
-
         }
 
         private void ProcessRequestQueue()
@@ -572,12 +632,6 @@ namespace Tealium
 
         }
 
-        private bool IsOnline()
-        {
-            connectivityStatus = System.Net.NetworkInformation.NetworkInterface.GetIsNetworkAvailable();
-            return connectivityStatus;
-        }
-
-        #endregion Utility Methods
+        #endregion Offline
     }
 }

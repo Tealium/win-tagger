@@ -1,9 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
+﻿
 namespace Tealium
 {
     /// <summary>
@@ -44,7 +39,7 @@ namespace Tealium
         /// <summary>
         /// The name of the identifier for "view" events.
         /// </summary>
-        internal const string DEFAULT_VIEW_ID_PARAM = "pageName";
+        internal const string DEFAULT_VIEW_ID_PARAM = "screen_title";
 
         /// <summary>
         /// The name of the "custom" event reported by the Tealium tracker.

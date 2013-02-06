@@ -1,17 +1,13 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using Windows.UI.Xaml;
 using System.Reflection;
-using System.Diagnostics;
 using System.Runtime.InteropServices.WindowsRuntime;
-using System.Collections.ObjectModel;
-using Windows.UI.Xaml.Markup;
+using Windows.UI.Xaml;
 
 namespace Tealium
 {
+    /// <summary>
+    /// Attached property/behavior that listens for a WinRT event and fires a corresponding Tealium event in response.
+    /// </summary>
     public class TealiumEventBehavior : DependencyObject
     {
         /// <summary>
@@ -64,6 +60,11 @@ namespace Tealium
             }
         }
 
+        /// <summary>
+        /// Removes the registered handler for reporting the event to Tealium.
+        /// </summary>
+        /// <param name="d"></param>
+        /// <param name="evt"></param>
         private static void UnregisterForEvent(DependencyObject d, EventInfo evt)
         {
             Type handlerType = evt.EventHandlerType;
@@ -76,6 +77,11 @@ namespace Tealium
                 executemethodinfo);
         }
 
+        /// <summary>
+        /// Registers a handler for reporting the event to Tealium.
+        /// </summary>
+        /// <param name="d"></param>
+        /// <param name="evt"></param>
         private static void RegisterForEvent(DependencyObject d, EventInfo evt)
         {
             ReferenceTracker.TrackReference(d);

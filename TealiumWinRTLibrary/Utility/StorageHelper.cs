@@ -1,16 +1,17 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
+﻿using System.IO;
+using System.Runtime.Serialization.Json;
 using System.Threading.Tasks;
 using Windows.Storage;
-using System.IO;
-using System.Runtime.Serialization.Json;
 
 namespace Tealium.Utility
 {
-    //http://www.sharpgis.net/post/2012/01/12/Reading-and-Writing-text-files-in-Windows-8-Metro.aspx
-    public class StorageHelper
+    /// <summary>
+    /// Internal utility for caching content to local storage.
+    /// </summary>
+    /// <remarks>
+    /// reference: http://www.sharpgis.net/post/2012/01/12/Reading-and-Writing-text-files-in-Windows-8-Metro.aspx
+    /// </remarks>
+    internal class StorageHelper
     {
 
         public static async Task<bool> Save<T>(T data, string fileName)

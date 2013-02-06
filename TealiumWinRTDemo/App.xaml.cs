@@ -70,7 +70,16 @@ namespace TealiumWinRTDemo
                     }
                 }
 
-                TealiumTagger.Initialize(new TealiumSettings("win8", "main", TealiumEnvironment.TealiumTargetDev ));
+                //TEALIUM: example for initializing the Tealium Tagger
+                TealiumTagger.Initialize(new TealiumSettings(
+                    "win8", //Tealium account name
+                    "main", //Tealium profile name
+#if DEBUG
+                    TealiumEnvironment.TealiumTargetDev //Run against the Dev environment when in "DEBUG" configuration
+#else
+                    TealiumEnvironment.TealiumTargetProd //Run against the Prod environment when in "RELEASE" configuration
+#endif
+                    ));
 
 
                 // Place the frame in the current Window

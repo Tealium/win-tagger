@@ -2,15 +2,14 @@
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using Windows.UI.Core;
 using Windows.UI.Xaml;
-using Windows.UI.Xaml.Media;
 
 namespace Tealium
 {
-    public class ReferenceTracker
+    /// <summary>
+    /// This is an internal class for performance testing.
+    /// </summary>
+    internal class ReferenceTracker
     {
         protected static List<WeakReference> openRefs = new List<WeakReference>();
         protected static int openRefCount = 0;
