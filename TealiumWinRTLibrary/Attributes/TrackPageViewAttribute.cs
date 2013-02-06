@@ -3,7 +3,8 @@ namespace Tealium
 {
 
     /// <summary>
-    /// Automatically wires up a 'view' metric for the page when it is navigated to.
+    /// Wires up a 'view' metric for the page when it is navigated to.  If "AutoTrackPageViews" is enabled in
+    /// the settings, this will override the page name reported to Tealium.
     /// </summary>
     public class TrackPageViewAttribute : TrackBaseAttribute
     {

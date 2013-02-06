@@ -116,7 +116,6 @@
     <Compile Include="XAML\TealiumEventBehavior.cs" />
     <Compile Include="Attributes\TrackBaseAttribute.cs" />
     <Compile Include="Constants.cs" />
-    <Compile Include="Exceptions\TealiumExceptions.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="TealiumSettings.cs" />
     <Compile Include="TealiumTagger.cs" />

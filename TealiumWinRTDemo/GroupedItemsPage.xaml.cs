@@ -22,7 +22,7 @@ namespace TealiumWinRTDemo
     /// <summary>
     /// A page that displays a grouped collection of items.
     /// </summary>
-    [TrackPageView("homepage")]
+    //[TrackPageView("homepage")]
     public sealed partial class GroupedItemsPage : TealiumWinRTDemo.Common.LayoutAwarePage
     {
         public GroupedItemsPage()

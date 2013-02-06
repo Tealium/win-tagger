@@ -29,6 +29,13 @@ namespace Tealium
         /// </summary>
         public bool UseSSL { get; set; }
 
+        /// <summary>
+        /// Whether to automatically track all navigation events to a new page.  If enabled and the
+        /// "TrackPageViewAttribute" attribute is not specified on the page, it will report the 
+        /// class name as the page being navigated to.
+        /// Default setting is 'true' for automatically tracking page views.
+        /// </summary>
+        public bool AutoTrackPageViews { get; set; }
 
         /// <summary>
         /// The name of the Tealium tracking event for page views (default 'view').
@@ -61,7 +68,7 @@ namespace Tealium
         public TealiumSettings(string account, string profile, TealiumEnvironment environment)
         {
             if (string.IsNullOrWhiteSpace(account) || string.IsNullOrWhiteSpace(profile))
-                throw new TealiumConfigurationException("The Account, Profile, and Environment settings are required when initializing a new Settings instance.");
+                TealiumStatusLog.Error("The Account, Profile, and Environment settings are required when initializing a new Settings instance.");
 
             this.Account = account;
             this.Profile = profile;
@@ -69,6 +76,7 @@ namespace Tealium
 
             //set defaults for the rest of the settings.
             this.EnableOfflineMode = true;
+            this.AutoTrackPageViews = true;
             this.UseSSL = false;
             ViewMetricEventName = Constants.DEFAULT_VIEW_EVENT_NAME;
             ClickMetricEventName = Constants.DEFAULT_CLICK_EVENT_NAME;

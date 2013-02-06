@@ -69,7 +69,7 @@ namespace Tealium
         {
             get
             {
-                //TODO: exception if not initialized
+                TealiumStatusLog.Error("TealiumTagger instance has not been initialized. Please initialize in your App.xaml.cs OnLaunched handler.");
                 return instance;
             }
         }
@@ -151,8 +151,6 @@ namespace Tealium
                 rootFrame.Navigated += rootFrame_Navigated;
                 rootFrame.Unloaded += rootFrame_Unloaded;
 
-                Window.Current.Activated += Current_Activated;
-                Window.Current.Closed += Current_Closed;
                 Application.Current.Suspending += Current_Suspending;
                 Application.Current.Resuming += Current_Resuming;
                 Application.Current.UnhandledException += Current_UnhandledException;
@@ -174,8 +172,6 @@ namespace Tealium
                 rootFrame.Navigated -= rootFrame_Navigated;
                 rootFrame.Unloaded -= rootFrame_Unloaded;
 
-                Window.Current.Activated -= Current_Activated;
-                Window.Current.Closed -= Current_Closed;
                 Application.Current.Suspending -= Current_Suspending;
                 Application.Current.Resuming -= Current_Resuming;
                 Application.Current.UnhandledException -= Current_UnhandledException;
@@ -218,37 +214,28 @@ namespace Tealium
 
         void Current_UnhandledException(object sender, UnhandledExceptionEventArgs e)
         {
-            Debug.WriteLine("Application.Current.UnhandledException");
+            TealiumStatusLog.Warning("Application.Current.UnhandledException");
         }
 
         async void Current_Resuming(object sender, object e)
         {
-            Debug.WriteLine("Application.Current.Resuming");
+            TealiumStatusLog.Information("Application.Current.Resuming");
             await LoadPersistedQueue();
-            Debug.WriteLine("Queue loaded from disk");
+            TealiumStatusLog.Information("Queue loaded from disk");
             
         }
 
         async void Current_Suspending(object sender, Windows.ApplicationModel.SuspendingEventArgs e)
         {
-            Debug.WriteLine("Application.Current.Suspending");
+            TealiumStatusLog.Information("Application.Current.Suspending");
             SuspendingDeferral deferral = e.SuspendingOperation.GetDeferral();
             var throwaway = await StorageHelper.Save(requestQueue, "_tealium_queue");
-            Debug.WriteLine("Queue saved to disk");
-            deferral.Complete();
-            //UnsubscribeEvents();
+            
+            TealiumStatusLog.Information("Queue saved to disk");
+            deferral.Complete(); //needed to ensure the suspend process waits for this to finish
+            
         }
 
-        void Current_Closed(object sender, Windows.UI.Core.CoreWindowEventArgs e)
-        {
-            //this may never get called?
-            Debug.WriteLine("Window.Current.Closed");
-        }
-
-        void Current_Activated(object sender, Windows.UI.Core.WindowActivatedEventArgs e)
-        {
-            Debug.WriteLine("Window.Current.Activated: {0}", e.WindowActivationState);
-        }
 
         void rootFrame_Unloaded(object sender, RoutedEventArgs e)
         {
@@ -281,7 +268,7 @@ namespace Tealium
                     ((FrameworkElement)page).OnFirstFrame(() =>
                         {
                             //We delay this call until we know the page has rendered. This helps to ensure this call fires only after navigation has completed.
-                            ReportPageNavigation(page, e.Parameter);
+                            ReportPageNavigation(page);
                         });
                 }
             }
@@ -304,12 +291,11 @@ namespace Tealium
                 try
                 {
                     taggerWebView.InvokeScript("eval", new[] { invokeScript });
-                    Debug.WriteLine("*********{0}", invokeScript);
+                    TealiumStatusLog.Information(invokeScript);
                 }
                 catch (Exception ex)
                 {
-                    //TODO: logging if request failed
-                    Debugger.Break();
+                    TealiumStatusLog.Error(ex.Message);
                 }
             }
 
@@ -375,7 +361,6 @@ namespace Tealium
         /// <param name="variables"></param>
         public void TrackScreenViewed(string viewName, IDictionary variables = null)
         {
-            //TODO: implementation question - should the page name be persisted in providedVariables for future analytics calls on the same screen?
             if (variables == null)
                 variables = new Dictionary<string, string>();
 
@@ -509,7 +494,7 @@ namespace Tealium
 
         }
 
-        private void ReportPageNavigation(object page, object parameter = null)
+        private void ReportPageNavigation(object page)
         {
             string pageName = null;
 
@@ -517,11 +502,18 @@ namespace Tealium
             if (name != null)
                 pageName = name.Value;
 
+            if (string.IsNullOrEmpty(pageName) && settings.AutoTrackPageViews)
+            {
+                //auto-track enabled for navigation, report based on the type of page we are navigating to
+                pageName = page.GetType().Name;
+            }
+
             if (!string.IsNullOrEmpty(pageName))
             {
                 //we have the page param; track this view
                 TrackScreenViewed(pageName, null);
             }
+
         }
 
         private void LoadAutomaticNavigationProperties(object page, object parameter)
