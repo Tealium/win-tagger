@@ -21,7 +21,7 @@
             d:Source="{Binding AllGroups[0].Items, Source={d:DesignInstance Type=data:SampleDataSource, IsDesignTimeCreatable=True}}"/>
     </Page.Resources>
     <tealium:TealiumEventBehavior.Event>
-        <tealium:TealiumEvent EventName="Loaded" VariableName="view">
+        <tealium:TealiumEvent EventName="Loaded" VariableName="custom-event">
         </tealium:TealiumEvent>
     </tealium:TealiumEventBehavior.Event>
 
