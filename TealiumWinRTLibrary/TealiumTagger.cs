@@ -374,7 +374,7 @@ namespace Tealium
         /// </summary>
         /// <param name="eventName"></param>
         /// <param name="variables"></param>
-        public void TrackCustomEvent(string eventName, IDictionary variables)
+        public void TrackCustomEvent(string eventName, IDictionary variables = null)
         {
             Dictionary<string, string> variablesToSend = new Dictionary<string, string>(baseVariables);
             if (providedVariables != null)

@@ -1,4 +1,5 @@
-﻿
+﻿using System;
+
 namespace Tealium
 {
 
@@ -6,6 +7,7 @@ namespace Tealium
     /// Wires up a 'view' metric for the page when it is navigated to.  If "AutoTrackPageViews" is enabled in
     /// the settings, this will override the page name reported to Tealium.
     /// </summary>
+    [AttributeUsage(AttributeTargets.Class, AllowMultiple = false)]
     public class TrackPageViewAttribute : TrackBaseAttribute
     {
         public TrackPageViewAttribute(string pageName)

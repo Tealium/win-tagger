@@ -1,9 +1,11 @@
-﻿
+﻿using System;
+
 namespace Tealium
 {
     /// <summary>
     /// Associates a name/value pair for any reported events on this page.
     /// </summary>
+    [AttributeUsage(AttributeTargets.Class, AllowMultiple = true)]
     public class TrackPropertyAttribute : TrackBaseAttribute
     {
         public TrackPropertyAttribute(string name, string value)

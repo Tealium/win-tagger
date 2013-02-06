@@ -137,6 +137,25 @@ report it to Tealium as a "click".  The example also includes two custom propert
 the call.
 
 
+Tealium Settings
+----------------
+
+To minimize the need to customize the library, a variety of settings are provided to
+tailor it for different applications' needs.
+
+ - Account / Profile / Environment - account-specific settings for your application
+ - EnableOfflineMode (default:true) - caches analytics calls if the app is offline and
+queues them for submission once connectivity is restored.  Note: the order of requests
+is persisted, but there is no guarantee that timestamps will be correct once the
+requests are processed.  The queue will only be processed when the application is
+running.
+ - UseSSL (default:false) - whether to referene the SSL/HTTPS version of the tracking
+control (true) or the standard HTTP version (false).
+ - AutoTrackPageViews (default:true) - whether to automatically log a 'view' metric with 
+the Tealium Tagger whenever a new page navigation is performed.  Disable this if manually
+tracking page views with TealiumTagger.Instance.TrackPageView().
+ - ViewMetricEventName / ViewMetricIdParam / ClickMetricEventName / ClickMetricIdParam - 
+overrides the default names given to the view and click events.
 
 Support
 -------

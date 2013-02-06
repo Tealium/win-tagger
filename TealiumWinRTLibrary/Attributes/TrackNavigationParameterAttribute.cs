@@ -1,4 +1,5 @@
-﻿
+﻿using System;
+
 namespace Tealium
 {
 
@@ -7,6 +8,7 @@ namespace Tealium
     /// Optionally can specify a property or field on the navigation parameter to use as the tracking value.
     /// If you are interested in just providing a name/value parameter on the page, use TrackPropertyAttribute.
     /// </summary>
+    [AttributeUsage(AttributeTargets.Class, AllowMultiple = false)]
     public class TrackNavigationParameterAttribute : TrackBaseAttribute
     {
         public TrackNavigationParameterAttribute(string variableName)
