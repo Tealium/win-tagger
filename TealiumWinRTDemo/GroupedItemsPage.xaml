@@ -9,6 +9,7 @@
     xmlns:common="using:TealiumWinRTDemo.Common"
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    xmlns:tealium="using:Tealium"
     mc:Ignorable="d">
 
     <Page.Resources>
@@ -45,10 +46,16 @@
             Padding="116,137,40,46"
             ItemsSource="{Binding Source={StaticResource groupedItemsViewSource}}"
             ItemTemplate="{StaticResource Standard250x250ItemTemplate}"
-            SelectionMode="None"
-            IsSwipeEnabled="false"
+            SelectionMode="None" 
+            IsSwipeEnabled="false" 
             IsItemClickEnabled="True"
             ItemClick="ItemView_ItemClick">
+            <tealium:TealiumEventTagger.Event>
+                <tealium:TealiumEvent EventName="ItemClick" VariableName="click">
+                    <tealium:ParameterValue PropertyName="Foo1" PropertyValue="Bar1" />
+                    <tealium:ParameterValue PropertyName="Foo2" PropertyValue="{Binding RelativeSource={RelativeSource Mode=TemplatedParent}}" />
+                </tealium:TealiumEvent>
+            </tealium:TealiumEventTagger.Event>
 
             <GridView.ItemsPanel>
                 <ItemsPanelTemplate>                        
@@ -68,13 +75,16 @@
                                         <TextBlock Text="{Binding Title}" Margin="3,-7,10,10" Style="{StaticResource GroupHeaderTextStyle}" />
                                         <TextBlock Text="{StaticResource ChevronGlyph}" FontFamily="Segoe UI Symbol" Margin="0,-7,0,10" Style="{StaticResource GroupHeaderTextStyle}"/>
                                     </StackPanel>
+                                    <tealium:TealiumEventTagger.Event>
+                                        <tealium:TealiumEvent EventName="Click" VariableName="link" />
+                                    </tealium:TealiumEventTagger.Event>
                                 </Button>
                             </Grid>
                         </DataTemplate>
                     </GroupStyle.HeaderTemplate>
                     <GroupStyle.Panel>
                         <ItemsPanelTemplate>
-                            <VariableSizedWrapGrid Orientation="Vertical" Margin="0,0,80,0"/>
+                            <VariableSizedWrapGrid Orientation="Vertical" Margin="0,0,80,0" />
                         </ItemsPanelTemplate>
                     </GroupStyle.Panel>
                 </GroupStyle>

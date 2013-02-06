@@ -162,6 +162,7 @@ namespace Tealium
 
                 if (rootFrame.Content != null)
                 {
+                    LoadAutomaticNavigationProperties(rootFrame.Content, null);
                     ReportPageNavigation(rootFrame.Content);
                 }
             }
@@ -259,7 +260,13 @@ namespace Tealium
                 var page = ((Frame)sender).Content;
                 if (page != null)
                 {
-                    ReportPageNavigation(page, e.Parameter);
+                    LoadAutomaticNavigationProperties(page, e.Parameter);
+
+                    ((FrameworkElement)page).OnFirstFrame(() =>
+                        {
+                            //We delay this call until we know the page has rendered. This helps to ensure this call fires only after navigation has completed.
+                            ReportPageNavigation(page, e.Parameter);
+                        });
                 }
             }
 
@@ -267,8 +274,22 @@ namespace Tealium
 
         private void ReportPageNavigation(object page, object parameter = null)
         {
-            Dictionary<string, object> vars = new Dictionary<string, object>();
             string pageName = null;
+            
+            var name = page.GetType().GetTypeInfo().GetCustomAttribute<TrackPageViewAttribute>();
+            if (name != null)
+                pageName = name.Value;
+
+            if (!string.IsNullOrEmpty(pageName))
+            {
+                //we have the page param; track this view
+                TrackScreenViewed(pageName, null);
+            }
+        }
+
+        private void LoadAutomaticNavigationProperties(object page, object parameter)
+        {
+            Dictionary<string, object> vars = new Dictionary<string, object>();
 
             var props = page.GetType().GetTypeInfo().GetCustomAttributes<TrackPropertyAttribute>();
             if (props != null && props.Any())
@@ -281,14 +302,14 @@ namespace Tealium
 
             }
 
-            var pars = page.GetType().GetTypeInfo().GetCustomAttributes<TrackParameterAttribute>();
+            var pars = page.GetType().GetTypeInfo().GetCustomAttributes<TrackNavigationParameterAttribute>();
             if (pars != null && pars.Any())
             {
                 foreach (var item in pars)
                 {
                     if (!string.IsNullOrEmpty(item.VariableName))
                     {
-                        if (!string.IsNullOrEmpty(item.ParameterName) && parameter  != null)
+                        if (!string.IsNullOrEmpty(item.ParameterName) && parameter != null)
                         {
                             vars[item.VariableName] = LookupProperty(item.ParameterName, parameter);
                         }
@@ -301,21 +322,8 @@ namespace Tealium
 
             }
 
-            
-            var name = page.GetType().GetTypeInfo().GetCustomAttribute<TrackPageViewAttribute>();
-            if (name != null)
-                pageName = name.Value;
+            this.SetVariables(vars);
 
-            if (!string.IsNullOrEmpty(pageName))
-            {
-                //we have the page param; track this view
-                TrackScreenViewed(pageName, vars);
-            }
-            else
-            {
-                //need to wait until data loads, just set vars for later
-                this.SetVariables(vars);
-            }
         }
 
         private object LookupProperty(string p, object parameter)
@@ -368,6 +376,7 @@ namespace Tealium
                 catch (Exception ex)
                 {
                     //TODO: logging if request failed
+                    Debugger.Break();
                 }
             }
 
@@ -495,13 +504,34 @@ namespace Tealium
                     settings.UseSSL ?  "https" : "http",
                     settings.Account, 
                     settings.Profile, 
-                    settings.Environment);
+                    GetEnvironmentString(settings.Environment));
+        }
+
+        private object GetEnvironmentString(TealiumEnvironment tealiumEnvironment)
+        {
+            string env = string.Empty;
+            switch (tealiumEnvironment)
+            {
+                case TealiumEnvironment.TealiumTargetDev:
+                    env = Constants.ENV_DEV;
+                    break;
+                case TealiumEnvironment.TealiumTargetQA:
+                    env = Constants.ENV_QA;
+                    break;
+                case TealiumEnvironment.TealiumTargetProd:
+                    env = Constants.ENV_PROD;
+                    break;
+                default:
+                    env = Constants.ENV_DEV;
+                    break;
+            }
+            return env;
         }
 
         private string GetJson(Dictionary<string, string> variablesToSend)
         {
             if (variablesToSend == null || variablesToSend.Count == 0)
-                return string.Empty;
+                return "{ }"; //equivalent to string.Empty for our purposes
 
             string v = string.Empty;
             foreach (var item in variablesToSend)

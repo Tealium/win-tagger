@@ -25,7 +25,7 @@ namespace TealiumWinRTDemo
     /// </summary>
     [TrackPageView("item-details")]
     [TrackProperty("test-param", "test-value")]
-    [TrackParameter("item-id")]
+    [TrackNavigationParameter("item-id")]
     public sealed partial class ItemDetailPage : TealiumWinRTDemo.Common.LayoutAwarePage
     {
         public ItemDetailPage()

@@ -102,7 +102,15 @@
     <!-- A reference to the entire .Net Framework and Windows SDK are automatically included -->
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Attributes\TrackingAttributes.cs" />
+    <Compile Include="Attributes\TrackNavigationParameterAttribute.cs" />
+    <Compile Include="Attributes\TrackPageViewAttribute.cs" />
+    <Compile Include="Attributes\TrackPropertyAttribute.cs" />
+    <Compile Include="Enumerations\TealiumEnvironment.cs" />
+    <Compile Include="Utility\ExtensionMethods.cs" />
+    <Compile Include="XAML\ParameterValue.cs" />
+    <Compile Include="XAML\TealiumEvent.cs" />
+    <Compile Include="XAML\TealiumEventTagger.cs" />
+    <Compile Include="Attributes\TrackBaseAttribute.cs" />
     <Compile Include="Constants.cs" />
     <Compile Include="Exceptions\TealiumExceptions.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
