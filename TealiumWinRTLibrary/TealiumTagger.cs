@@ -97,6 +97,113 @@ namespace Tealium
 
         #endregion Constructors
 
+        #region Public API Surface
+
+        /// <summary>
+        /// Adds the supplied collection of name/value pairs to the collection of variables.  These values will be persisted between calls until ClearVariables is called.
+        /// </summary>
+        /// <param name="variables"></param>
+        public void SetVariables(IDictionary variables)
+        {
+            if (variables == null)
+            {
+                providedVariables = null;
+                return;
+            }
+            providedVariables = new ConcurrentDictionary<string, object>();
+            var e = variables.GetEnumerator();
+            while (e.MoveNext())
+            {
+                providedVariables.TryAdd(e.Key.ToString(), e.Value);
+            }
+        }
+
+        /// <summary>
+        /// Adds an individual name/value pair to the persisted collection of variables.
+        /// </summary>
+        /// <param name="name"></param>
+        /// <param name="value"></param>
+        public void SetVariable(string name, string value)
+        {
+            if (providedVariables == null)
+                providedVariables = new ConcurrentDictionary<string, object>();
+            providedVariables[name] = value;
+        }
+
+        /// <summary>
+        /// Reports a click/link event with the specified details.
+        /// Variables that have the same name as persisted variables set by SetVariables will take precedence.  All variables passed to this call will not be persisted.
+        /// </summary>
+        /// <param name="itemName"></param>
+        /// <param name="variables"></param>
+        public void TrackItemClicked(string itemName, IDictionary variables = null)
+        {
+            if (variables == null)
+                variables = new Dictionary<string, string>();
+
+            variables[settings.ClickMetricIdParam] = itemName;
+            TrackCustomEvent(settings.ClickMetricEventName, variables);
+        }
+
+        /// <summary>
+        /// Reports a page view event with the specified details.
+        /// Variables that have the same name as persisted variables set by SetVariables will take precedence.  All variables passed to this call will not be persisted.
+        /// </summary>
+        /// <param name="viewName"></param>
+        /// <param name="variables"></param>
+        public void TrackScreenViewed(string viewName, IDictionary variables = null)
+        {
+            if (variables == null)
+                variables = new Dictionary<string, string>();
+
+            variables[settings.ViewMetricIdParam] = viewName;
+            TrackCustomEvent(settings.ViewMetricEventName, variables);
+        }
+
+        /// <summary>
+        /// Reports a custom event with the specified details.
+        /// Variables that have the same name as persisted variables set by SetVariables will take precedence.  All variables passed to this call will not be persisted.
+        /// </summary>
+        /// <param name="eventName"></param>
+        /// <param name="variables"></param>
+        public void TrackCustomEvent(string eventName, IDictionary variables = null)
+        {
+            Dictionary<string, string> variablesToSend = new Dictionary<string, string>(baseVariables);
+            if (providedVariables != null)
+            {
+                foreach (var item in providedVariables)
+                {
+                    if (item.Value != null)
+                        variablesToSend[item.Key] = item.Value.ToString();
+                    else
+                        variablesToSend[item.Key] = string.Empty;
+
+                }
+            }
+
+            if (variables != null)
+            {
+                var e = variables.GetEnumerator();
+                while (e.MoveNext())
+                {
+                    if (e.Value != null)
+                        variablesToSend[e.Key.ToString()] = e.Value.ToString();
+                    else
+                        variablesToSend[e.Key.ToString()] = string.Empty;
+
+                }
+
+            }
+
+            string jsonParams = GetJson(variablesToSend);
+            SendEvent(eventName, jsonParams);
+
+        }
+
+
+        #endregion Public API Surface
+
+
         #region Initialization
 
         private void RegisterWithRootFrame()
@@ -249,11 +356,18 @@ namespace Tealium
             bool newConnectivityStatus = System.Net.NetworkInformation.NetworkInterface.GetIsNetworkAvailable();
             if (newConnectivityStatus != connectivityStatus && newConnectivityStatus)
             {
-                //run following command on UI thread
-                CoreWindow.GetForCurrentThread().Dispatcher.RunAsync(CoreDispatcherPriority.Normal, () =>
+                try
                 {
-                    ProcessRequestQueue();
-                });
+                    //run following command on UI thread
+                    CoreWindow.GetForCurrentThread().Dispatcher.RunAsync(CoreDispatcherPriority.Normal, () =>
+                    {
+                        ProcessRequestQueue();
+                    });
+                }
+                catch (Exception ex)
+                {
+                    TealiumStatusLog.Error(ex.Message);
+                }
             }
             connectivityStatus = newConnectivityStatus;
         }
@@ -305,113 +419,6 @@ namespace Tealium
 
 
         #endregion Event Handlers
-
-
-        #region Public API Surface
-
-        /// <summary>
-        /// Adds the supplied collection of name/value pairs to the collection of variables.  These values will be persisted between calls until ClearVariables is called.
-        /// </summary>
-        /// <param name="variables"></param>
-        public void SetVariables(IDictionary variables)
-        {
-            if (variables == null)
-            {
-                providedVariables = null;
-                return;
-            }
-            providedVariables = new ConcurrentDictionary<string, object>();
-            var e = variables.GetEnumerator();
-            while (e.MoveNext())
-            {
-                providedVariables.TryAdd(e.Key.ToString(), e.Value);
-            }
-        }
-
-        /// <summary>
-        /// Adds an individual name/value pair to the persisted collection of variables.
-        /// </summary>
-        /// <param name="name"></param>
-        /// <param name="value"></param>
-        public void SetVariable(string name, string value)
-        {
-            if (providedVariables == null)
-                providedVariables = new ConcurrentDictionary<string, object>();
-            providedVariables[name] = value;
-        }
-
-        /// <summary>
-        /// Reports a click/link event with the specified details.
-        /// Variables that have the same name as persisted variables set by SetVariables will take precedence.  All variables passed to this call will not be persisted.
-        /// </summary>
-        /// <param name="itemName"></param>
-        /// <param name="variables"></param>
-        public void TrackItemClicked(string itemName, IDictionary variables = null)
-        {
-            if (variables == null)
-                variables = new Dictionary<string, string>();
-
-            variables[settings.ClickMetricIdParam] = itemName;
-            TrackCustomEvent(settings.ClickMetricEventName, variables);
-        }
-
-        /// <summary>
-        /// Reports a page view event with the specified details.
-        /// Variables that have the same name as persisted variables set by SetVariables will take precedence.  All variables passed to this call will not be persisted.
-        /// </summary>
-        /// <param name="viewName"></param>
-        /// <param name="variables"></param>
-        public void TrackScreenViewed(string viewName, IDictionary variables = null)
-        {
-            if (variables == null)
-                variables = new Dictionary<string, string>();
-
-            variables[settings.ViewMetricIdParam] = viewName;
-            TrackCustomEvent(settings.ViewMetricEventName, variables);
-        }
-
-        /// <summary>
-        /// Reports a custom event with the specified details.
-        /// Variables that have the same name as persisted variables set by SetVariables will take precedence.  All variables passed to this call will not be persisted.
-        /// </summary>
-        /// <param name="eventName"></param>
-        /// <param name="variables"></param>
-        public void TrackCustomEvent(string eventName, IDictionary variables = null)
-        {
-            Dictionary<string, string> variablesToSend = new Dictionary<string, string>(baseVariables);
-            if (providedVariables != null)
-            {
-                foreach (var item in providedVariables)
-                {
-                    if (item.Value != null)
-                        variablesToSend[item.Key] = item.Value.ToString();
-                    else
-                        variablesToSend[item.Key] = string.Empty;
-
-                }
-            }
-
-            if (variables != null)
-            {
-                var e = variables.GetEnumerator();
-                while (e.MoveNext())
-                {
-                    if (e.Value != null)
-                        variablesToSend[e.Key.ToString()] = e.Value.ToString();
-                    else
-                        variablesToSend[e.Key.ToString()] = string.Empty;
-
-                }
-                
-            }
-
-            string jsonParams = GetJson(variablesToSend);
-            SendEvent(eventName, jsonParams);
-
-        }
-
-
-        #endregion Public API Surface
 
 
         #region Configuration
