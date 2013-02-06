@@ -105,6 +105,8 @@
     <Compile Include="Attributes\TrackNavigationParameterAttribute.cs" />
     <Compile Include="Attributes\TrackPageViewAttribute.cs" />
     <Compile Include="Attributes\TrackPropertyAttribute.cs" />
+    <Compile Include="Diagnostics\ReferenceTracker.cs" />
+    <Compile Include="Diagnostics\TealiumStatusLog.cs" />
     <Compile Include="Enumerations\TealiumEnvironment.cs" />
     <Compile Include="Enumerations\WebViewStatus.cs" />
     <Compile Include="Utility\ExtensionMethods.cs" />

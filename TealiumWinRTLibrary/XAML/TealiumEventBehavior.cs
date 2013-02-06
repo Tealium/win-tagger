@@ -78,6 +78,7 @@ namespace Tealium
 
         private static void RegisterForEvent(DependencyObject d, EventInfo evt)
         {
+            ReferenceTracker.TrackReference(d);
             Type handlerType = evt.EventHandlerType;
 
             var dm = typeof(TealiumEventBehavior).GetTypeInfo().GetDeclaredMethod("EventActionHandler");
