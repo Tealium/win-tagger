@@ -82,10 +82,14 @@ namespace Tealium
         protected static int CalcOpenReferences()
         {
             openRefCount = 0;
+            List<WeakReference> alive = new List<WeakReference>();
             for (int i = 0; i < openRefs.Count; i++)
             {
                 if (openRefs[i].IsAlive)
+                {
                     openRefCount++;
+                    alive.Add(openRefs[i]);
+                }
             }
 
             if (openRefCount % 4 == 0)

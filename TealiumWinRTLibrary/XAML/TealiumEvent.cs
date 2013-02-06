@@ -19,6 +19,7 @@ namespace Tealium
         public TealiumEvent()
         {
             this.Parameters = new Collection<ParameterValue>();
+            ReferenceTracker.TrackReference(this);
         }
 
         /// <summary>
