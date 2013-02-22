@@ -18,11 +18,13 @@ namespace Tealium
         /// </summary>
         public TealiumEnvironment Environment { get; set; }
 
+#if NETFX_CORE
         /// <summary>
         /// Whether requests should be queued for later delivery whenever a network connection is unavailable.
         /// Note that queued requests will retain their order when sent, but timestamps may not be accurate.
         /// </summary>
         public bool EnableOfflineMode { get; set; }
+#endif
 
         /// <summary>
         /// Whether traffic should run over https (true) or http (false).
@@ -75,7 +77,9 @@ namespace Tealium
             this.Environment = environment;
 
             //set defaults for the rest of the settings.
+#if NETFX_CORE
             this.EnableOfflineMode = true;
+#endif
             this.AutoTrackPageViews = true;
             this.UseSSL = false;
             ViewMetricEventName = Constants.DEFAULT_VIEW_EVENT_NAME;

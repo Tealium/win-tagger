@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Windows;
 
 namespace Windows.UI.Xaml
 {
@@ -13,8 +14,11 @@ namespace Windows.UI.Xaml
         {
             if (a == null || that == null)
                 return;
-
+#if NETFX_CORE
             EventHandler<object> handler = null;
+#else
+            EventHandler handler = null;
+#endif
             RoutedEventHandler unload = null;
 
             handler = (s, e) =>

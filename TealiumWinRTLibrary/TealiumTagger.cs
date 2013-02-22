@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections;
-using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
@@ -12,8 +11,19 @@ using Tealium.Utility;
 using Windows.ApplicationModel;
 using Windows.UI.Core;
 using Windows.UI.Xaml;
+#if NETFX_CORE
+using System.Collections.Concurrent;
 using Windows.UI.Xaml.Controls;
 using Windows.UI.Xaml.Navigation;
+#endif
+#if WINDOWS_PHONE
+using System.Windows.Controls;
+using System.Windows.Navigation;
+using Microsoft.Phone.Controls;
+using System.Windows.Threading;
+using System.Windows;
+
+#endif
 
 namespace Tealium
 {
@@ -26,14 +36,18 @@ namespace Tealium
     {
         #region Private Members
 
+#if NETFX_CORE
         WebView taggerWebView;
+#elif WINDOWS_PHONE
+        WebBrowser taggerWebView;
+#endif
         Frame rootFrame;
         TealiumSettings settings;
         Dictionary<string, string> baseVariables;
-        ConcurrentDictionary<string, object> providedVariables;
+        Dictionary<string, object> providedVariables;
         bool connectivityStatus = true;
         WebViewStatus webViewStatus = WebViewStatus.Unknown;
-        ConcurrentQueue<string> requestQueue = new ConcurrentQueue<string>();
+        RequestQueue requestQueue = new RequestQueue();
         DispatcherTimer queueTimer = new DispatcherTimer() { Interval = TimeSpan.FromMilliseconds(200) };
 
         #endregion Private Members
@@ -110,11 +124,11 @@ namespace Tealium
                 providedVariables = null;
                 return;
             }
-            providedVariables = new ConcurrentDictionary<string, object>();
+            providedVariables = new Dictionary<string, object>();
             var e = variables.GetEnumerator();
             while (e.MoveNext())
             {
-                providedVariables.TryAdd(e.Key.ToString(), e.Value);
+                providedVariables[e.Key.ToString()] = e.Value;
             }
         }
 
@@ -126,7 +140,7 @@ namespace Tealium
         public void SetVariable(string name, string value)
         {
             if (providedVariables == null)
-                providedVariables = new ConcurrentDictionary<string, object>();
+                providedVariables = new Dictionary<string, object>();
             providedVariables[name] = value;
         }
 
@@ -210,11 +224,19 @@ namespace Tealium
         {
             baseVariables = new Dictionary<string, string>();
 
+#if NETFX_CORE
             LoadPersistedQueue();
+#endif
             InitializeWebView();
 
             if (rootFrame == null)
+            {
+#if NETFX_CORE
                 rootFrame = Window.Current.Content as Frame;
+#else
+                rootFrame = Application.Current.RootVisual as Frame;
+#endif
+            }
             if (rootFrame != null)
             {
                 SubscribeEvents();
@@ -222,16 +244,27 @@ namespace Tealium
             }
             else
             {
+#if NETFX_CORE
                 if (Window.Current.Content != null)
                     ErrorRootIsNotFrame();
                 Window.Current.VisibilityChanged += Current_VisibilityChanged;
+#else
+                if (Application.Current.RootVisual != null)
+                    ErrorRootIsNotFrame();
+
+                
+#endif
             }
         }
 
         private void InitializeWebView()
         {
             queueTimer.Tick += queueTimer_Tick;
+#if NETFX_CORE
             taggerWebView = new WebView();
+#elif WINDOWS_PHONE
+            taggerWebView = new WebBrowser();
+#endif
 
             OpenTrackingPage();
         }
@@ -260,9 +293,10 @@ namespace Tealium
                 rootFrame.Navigated += rootFrame_Navigated;
                 rootFrame.Unloaded += rootFrame_Unloaded;
 
+#if NETFX_CORE
                 Application.Current.Suspending += Current_Suspending;
                 Application.Current.Resuming += Current_Resuming;
-                Application.Current.UnhandledException += Current_UnhandledException;
+#endif
                 NetworkChange.NetworkAddressChanged += NetworkChange_NetworkAddressChanged;
 
                 if (rootFrame.Content != null)
@@ -280,10 +314,10 @@ namespace Tealium
                 rootFrame.Navigating -= rootFrame_Navigating;
                 rootFrame.Navigated -= rootFrame_Navigated;
                 rootFrame.Unloaded -= rootFrame_Unloaded;
-
+#if NETFX_CORE
                 Application.Current.Suspending -= Current_Suspending;
                 Application.Current.Resuming -= Current_Resuming;
-                Application.Current.UnhandledException -= Current_UnhandledException;
+#endif
                 NetworkChange.NetworkAddressChanged -= NetworkChange_NetworkAddressChanged;
             }
         }
@@ -296,18 +330,24 @@ namespace Tealium
         void taggerWebView_LoadCompleted(object sender, NavigationEventArgs e)
         {
             taggerWebView.NavigationFailed -= taggerWebView_NavigationFailed;
+            taggerWebView.NavigationFailed += taggerWebView_NavigationFailed;
             taggerWebView.LoadCompleted -= taggerWebView_LoadCompleted;
             webViewStatus = WebViewStatus.Loaded;
             ProcessRequestQueue();
         }
 
+#if NETFX_CORE
         void taggerWebView_NavigationFailed(object sender, WebViewNavigationFailedEventArgs e)
+#else
+        void taggerWebView_NavigationFailed(object sender, NavigationFailedEventArgs e)
+#endif
         {
             taggerWebView.NavigationFailed -= taggerWebView_NavigationFailed;
             taggerWebView.LoadCompleted -= taggerWebView_LoadCompleted;
             webViewStatus = WebViewStatus.Failure;
         }
 
+#if NETFX_CORE
         void Current_VisibilityChanged(object sender, Windows.UI.Core.VisibilityChangedEventArgs e)
         {
             Window.Current.VisibilityChanged -= Current_VisibilityChanged;
@@ -320,30 +360,27 @@ namespace Tealium
                 ErrorRootIsNotFrame();
 
         }
+#endif
 
-        void Current_UnhandledException(object sender, UnhandledExceptionEventArgs e)
-        {
-            TealiumStatusLog.Warning("Application.Current.UnhandledException");
-        }
 
+#if NETFX_CORE
         async void Current_Resuming(object sender, object e)
         {
             TealiumStatusLog.Information("Application.Current.Resuming");
             await LoadPersistedQueue();
             TealiumStatusLog.Information("Queue loaded from disk");
-            
         }
 
         async void Current_Suspending(object sender, Windows.ApplicationModel.SuspendingEventArgs e)
         {
             TealiumStatusLog.Information("Application.Current.Suspending");
             SuspendingDeferral deferral = e.SuspendingOperation.GetDeferral();
-            var throwaway = await StorageHelper.Save(requestQueue, "_tealium_queue");
+            var throwaway = await StorageHelper.Save(requestQueue.ToList(), "_tealium_queue");
             
             TealiumStatusLog.Information("Queue saved to disk");
             deferral.Complete(); //needed to ensure the suspend process waits for this to finish
-            
         }
+#endif
 
 
         void rootFrame_Unloaded(object sender, RoutedEventArgs e)
@@ -372,14 +409,18 @@ namespace Tealium
             connectivityStatus = newConnectivityStatus;
         }
 
-        void rootFrame_Navigated(object sender, Windows.UI.Xaml.Navigation.NavigationEventArgs e)
+        void rootFrame_Navigated(object sender, NavigationEventArgs e)
         {
             if (sender != null && e.NavigationMode == NavigationMode.New)
             {
                 var page = ((Frame)sender).Content;
                 if (page != null)
                 {
+#if NETFX_CORE
                     LoadAutomaticNavigationProperties(page, e.Parameter);
+#else
+                    LoadAutomaticNavigationProperties(page, e.Content);
+#endif
 
                     ((FrameworkElement)page).OnFirstFrame(() =>
                         {
@@ -391,7 +432,7 @@ namespace Tealium
 
         }
 
-        void rootFrame_Navigating(object sender, Windows.UI.Xaml.Navigation.NavigatingCancelEventArgs e)
+        void rootFrame_Navigating(object sender, NavigatingCancelEventArgs e)
         {
             SetVariables(null); //clear previous vars so they don't interfere w/ the next page
         }
@@ -603,18 +644,20 @@ namespace Tealium
             return connectivityStatus;
         }
 
+#if NETFX_CORE
         private async Task LoadPersistedQueue()
         {
-            var resumedQueue = await StorageHelper.Load<ConcurrentQueue<string>>(Constants.QUEUE_STORAGE_PATH);
+            var resumedQueue = await StorageHelper.Load<List<string>>(Constants.QUEUE_STORAGE_PATH);
             if (resumedQueue != null && resumedQueue.Count > 0)
             {
-                string val;
-                while (resumedQueue.TryDequeue(out val))
+                foreach (var item in resumedQueue)
                 {
-                    requestQueue.Enqueue(val);
+                    requestQueue.Enqueue(item);
+
                 }
             }
         }
+#endif
 
         private void ProcessRequestQueue()
         {

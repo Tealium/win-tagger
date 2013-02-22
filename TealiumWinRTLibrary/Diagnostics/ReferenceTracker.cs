@@ -3,6 +3,11 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 using Windows.UI.Xaml;
+#if WINDOWS_PHONE
+using System.Windows.Threading;
+using System.Windows;
+
+#endif
 
 namespace Tealium
 {
@@ -19,12 +24,20 @@ namespace Tealium
         static ReferenceTracker()
         {
 #if DEBUG
+#if NETFX_CORE
             Application.Current.Suspending += Current_Suspending;
+#else
+            Application.Current.Exit += Current_Suspending;
+#endif
             StartRefCounter();
 #endif
         }
 
+#if NETFX_CORE
         static void Current_Suspending(object sender, Windows.ApplicationModel.SuspendingEventArgs e)
+#else
+        static void Current_Suspending(object sender, EventArgs e)
+#endif
         {
             StopRefCounter();
         }
