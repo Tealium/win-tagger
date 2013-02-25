@@ -8,9 +8,11 @@ using System.Windows.Navigation;
 using Microsoft.Phone.Controls;
 using Microsoft.Phone.Shell;
 using TealiumWP8Demo.Resources;
+using Tealium;
 
 namespace TealiumWP8Demo
 {
+    [TrackNavigationParameter("TealiumVarName", "selectedItem")]
     public partial class DetailsPage : PhoneApplicationPage
     {
         // Constructor

@@ -8,6 +8,7 @@ using Microsoft.Phone.Controls;
 using Microsoft.Phone.Shell;
 using TealiumWP8Demo.Resources;
 using TealiumWP8Demo.ViewModels;
+using Tealium;
 
 namespace TealiumWP8Demo
 {
@@ -149,6 +150,14 @@ namespace TealiumWP8Demo
 
             // Ensure we don't initialize again
             phoneApplicationInitialized = true;
+
+            TealiumTagger.Initialize(RootFrame, new TealiumSettings("win8", "main", 
+#if DEBUG
+                TealiumEnvironment.TealiumTargetDev
+#else
+                TealiumEnvironment.TealiumTargetProd
+#endif
+                ));
         }
 
         // Do not add any additional code to this method

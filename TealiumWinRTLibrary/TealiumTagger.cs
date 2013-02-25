@@ -264,6 +264,7 @@ namespace Tealium
             taggerWebView = new WebView();
 #elif WINDOWS_PHONE
             taggerWebView = new WebBrowser();
+            taggerWebView.IsScriptEnabled = true;
 #endif
 
             OpenTrackingPage();
@@ -413,13 +414,21 @@ namespace Tealium
         {
             if (sender != null && e.NavigationMode == NavigationMode.New)
             {
-                var page = ((Frame)sender).Content;
+#if NETFX_CORE
+                object page = ((Frame)sender).Content;
+#else
+                object page = rootFrame.Content; //((NavigationService)sender).CurrentSource;
+#endif
+
                 if (page != null)
                 {
 #if NETFX_CORE
                     LoadAutomaticNavigationProperties(page, e.Parameter);
 #else
-                    LoadAutomaticNavigationProperties(page, e.Content);
+                    object param = null;
+                    if (page is PhoneApplicationPage)
+                        param = ((PhoneApplicationPage)page).NavigationContext;
+                    LoadAutomaticNavigationProperties(page,  param);
 #endif
 
                     ((FrameworkElement)page).OnFirstFrame(() =>
@@ -590,7 +599,15 @@ namespace Tealium
                     {
                         if (!string.IsNullOrEmpty(item.ParameterName) && parameter != null)
                         {
+#if NETFX_CORE
                             vars[item.VariableName] = LookupProperty(item.ParameterName, parameter);
+#else
+                            var context = parameter as NavigationContext;
+                            if (context != null && context.QueryString.ContainsKey(item.ParameterName))
+                            {
+                                vars[item.VariableName] = context.QueryString[item.ParameterName];
+                            }
+#endif
                         }
                         else
                         {
