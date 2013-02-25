@@ -31,9 +31,9 @@ namespace Tealium.Utility
             get
             {
 #if NETFX_CORE
-                return q != null && q.IsEmpty;
+                return q == null || q.IsEmpty;
 #else
-                return q != null && q.Count > 0;
+                return q == null || q.Count == 0;
 #endif
 
             }
