@@ -42,6 +42,8 @@ namespace TealiumWP8Demo
             if (MainLongListSelector.SelectedItem == null)
                 return;
 
+            Tealium.TealiumTagger.Instance.TrackItemClicked(((ItemViewModel)MainLongListSelector.SelectedItem).ID);
+
             // Navigate to the new page
             NavigationService.Navigate(new Uri("/DetailsPage.xaml?selectedItem=" + (MainLongListSelector.SelectedItem as ItemViewModel).ID, UriKind.Relative));
 
