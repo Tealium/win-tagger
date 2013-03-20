@@ -40,6 +40,10 @@ the source code as a separate project in your solution.
 How To Use
 ----------------------------------
 
+### Import/Referencing
+
+In any *.cs file where you need to implement a Tealium method, add "Using Tealium" to the import/referencing header area.
+
 ### Initialization
 
 In your App.xaml.cs file, add the following code to the OnLaunched event:
