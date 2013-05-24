@@ -46,7 +46,7 @@ namespace TealiumWinRTDemo
             this.DefaultViewModel["Group"] = group;
             this.DefaultViewModel["Items"] = group.Items;
 
-            TealiumTagger.Instance.TrackScreenViewed("group-details", new Dictionary<string, string>() { { "group-id", group.UniqueId }, { "custom-1", "value-1" } });
+            //TealiumTagger.Instance.TrackScreenViewed("group-details", new Dictionary<string, string>() { { "group-id", group.UniqueId }, { "custom-1", "value-1" } });
 
         }
 

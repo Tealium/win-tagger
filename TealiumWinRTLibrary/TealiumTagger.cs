@@ -1,18 +1,16 @@
 ﻿using System;
 using System.Collections;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.Linq;
 using System.Net;
 using System.Net.NetworkInformation;
 using System.Reflection;
-using System.Threading.Tasks;
 using Tealium.Utility;
-using Windows.ApplicationModel;
-using Windows.UI.Core;
 using Windows.UI.Xaml;
 #if NETFX_CORE
-using System.Collections.Concurrent;
+using Windows.ApplicationModel;
+using Windows.UI.Core;
+using System.Threading.Tasks;
 using Windows.UI.Xaml.Controls;
 using Windows.UI.Xaml.Navigation;
 #endif
@@ -171,6 +169,8 @@ namespace Tealium
                 variables = new Dictionary<string, string>();
 
             variables[settings.ViewMetricIdParam] = viewName;
+            SetVariable(this.settings.ViewMetricIdParam, viewName);
+
             TrackCustomEvent(settings.ViewMetricEventName, variables);
         }
 
@@ -397,10 +397,8 @@ namespace Tealium
                 try
                 {
                     //run following command on UI thread
-                    CoreWindow.GetForCurrentThread().Dispatcher.RunAsync(CoreDispatcherPriority.Normal, () =>
-                    {
-                        ProcessRequestQueue();
-                    });
+                    ThreadHelper.OnUiThread(()=>ProcessRequestQueue());
+                    
                 }
                 catch (Exception ex)
                 {
@@ -412,31 +410,32 @@ namespace Tealium
 
         void rootFrame_Navigated(object sender, NavigationEventArgs e)
         {
-            if (sender != null && e.NavigationMode == NavigationMode.New)
+#if NETFX_CORE
+            object page = ((Frame)sender).Content;
+#else
+            object page = rootFrame.Content; //((NavigationService)sender).CurrentSource;
+#endif
+
+            if (page != null)
             {
 #if NETFX_CORE
-                object page = ((Frame)sender).Content;
+                LoadAutomaticNavigationProperties(page, e.Parameter);
 #else
-                object page = rootFrame.Content; //((NavigationService)sender).CurrentSource;
+                object param = null;
+                if (page is PhoneApplicationPage)
+                    param = ((PhoneApplicationPage)page).NavigationContext;
+                LoadAutomaticNavigationProperties(page,  param);
 #endif
 
-                if (page != null)
-                {
-#if NETFX_CORE
-                    LoadAutomaticNavigationProperties(page, e.Parameter);
-#else
-                    object param = null;
-                    if (page is PhoneApplicationPage)
-                        param = ((PhoneApplicationPage)page).NavigationContext;
-                    LoadAutomaticNavigationProperties(page,  param);
-#endif
-
+                //Requested change: report all navigation events, not just "New" navigations
+                //if (sender != null && e.NavigationMode == NavigationMode.New)
+                //{
                     ((FrameworkElement)page).OnFirstFrame(() =>
-                        {
-                            //We delay this call until we know the page has rendered. This helps to ensure this call fires only after navigation has completed.
-                            ReportPageNavigation(page);
-                        });
-                }
+                    {
+                        //We delay this call until we know the page has rendered. This helps to ensure this call fires only after navigation has completed.
+                        ReportPageNavigation(page, e.NavigationMode);
+                    });
+                //}
             }
 
         }
@@ -534,7 +533,7 @@ namespace Tealium
                 {
                     if (v != string.Empty)
                         v += ",";
-                    v += string.Format("\"{0}\": \"{1}\"", WebUtility.HtmlEncode(item.Key), WebUtility.HtmlEncode(item.Value));
+                    v += string.Format("\"{0}\": \"{1}\"", item.Key.HtmlEncode(), item.Value.HtmlEncode());
                 }
             }
             return "{ " + v + " }";
@@ -553,11 +552,11 @@ namespace Tealium
 
         }
 
-        private void ReportPageNavigation(object page)
+        private void ReportPageNavigation(object page, NavigationMode navigationMode = NavigationMode.New)
         {
             string pageName = null;
 
-            var name = page.GetType().GetTypeInfo().GetCustomAttribute<TrackPageViewAttribute>();
+            var name = TypeHelper.GetAttribute<TrackPageViewAttribute>(page);// page.GetType().GetTypeInfo().GetCustomAttribute<TrackPageViewAttribute>();
             if (name != null)
                 pageName = name.Value;
 
@@ -565,7 +564,10 @@ namespace Tealium
             {
                 //auto-track enabled for navigation, report based on the type of page we are navigating to
                 pageName = page.GetType().Name;
+                SetVariable(this.settings.ViewMetricIdParam, pageName);
             }
+
+            //FUTURE: track "NavigationMode" to distinguish between New, Back, & Forward navigation events
 
             if (!string.IsNullOrEmpty(pageName))
             {
@@ -579,7 +581,7 @@ namespace Tealium
         {
             Dictionary<string, object> vars = new Dictionary<string, object>();
 
-            var props = page.GetType().GetTypeInfo().GetCustomAttributes<TrackPropertyAttribute>();
+            var props = TypeHelper.GetAttributes<TrackPropertyAttribute>(page);// page.GetType().GetTypeInfo().GetCustomAttributes<TrackPropertyAttribute>();
             if (props != null && props.Any())
             {
                 foreach (var item in props)
@@ -590,7 +592,7 @@ namespace Tealium
 
             }
 
-            var pars = page.GetType().GetTypeInfo().GetCustomAttributes<TrackNavigationParameterAttribute>();
+            var pars = TypeHelper.GetAttributes<TrackNavigationParameterAttribute>(page);// page.GetType().GetTypeInfo().GetCustomAttributes<TrackNavigationParameterAttribute>();
             if (pars != null && pars.Any())
             {
                 foreach (var item in pars)
@@ -600,7 +602,7 @@ namespace Tealium
                         if (!string.IsNullOrEmpty(item.ParameterName) && parameter != null)
                         {
 #if NETFX_CORE
-                            vars[item.VariableName] = LookupProperty(item.ParameterName, parameter);
+                            vars[item.VariableName] = TypeHelper.LookupProperty(item.ParameterName, parameter);
 #else
                             var context = parameter as NavigationContext;
                             if (context != null && context.QueryString.ContainsKey(item.ParameterName))
@@ -622,34 +624,6 @@ namespace Tealium
 
         }
 
-        private object LookupProperty(string p, object parameter)
-        {
-            //check for properties w/ that name first
-            var props = parameter.GetType().GetRuntimeProperties();
-            foreach (var item in props)
-            {
-                if (string.Equals(item.Name, p, StringComparison.OrdinalIgnoreCase))
-                {
-                    var s = item.GetValue(null);
-                    if (s != null)
-                        return s.ToString();
-                }
-
-            }
-            //if not found, check the fields
-            var fields = parameter.GetType().GetRuntimeFields();
-            foreach (var item in props)
-            {
-                if (string.Equals(item.Name, p, StringComparison.OrdinalIgnoreCase))
-                {
-                    var s = item.GetValue(null);
-                    if (s != null)
-                        return s.ToString();
-                }
-
-            }
-            return null;
-        }
 
         #endregion Reporting
 

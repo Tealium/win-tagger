@@ -112,6 +112,8 @@
     <Compile Include="IAnalyticsTagger.cs" />
     <Compile Include="Utility\ExtensionMethods.cs" />
     <Compile Include="Utility\RequestQueue.cs" />
+    <Compile Include="Utility\ThreadHelper.cs" />
+    <Compile Include="Utility\TypeHelper.cs" />
     <Compile Include="XAML\ParameterValue.cs" />
     <Compile Include="XAML\TealiumEvent.cs" />
     <Compile Include="XAML\TealiumEventBehavior.cs" />

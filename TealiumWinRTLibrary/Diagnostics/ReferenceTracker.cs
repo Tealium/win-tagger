@@ -85,7 +85,8 @@ namespace Tealium
         static void timer_Tick(object sender, object e)
         {
             var newCount = CalcOpenReferences();
-            Debug.WriteLineIf(OpenReferenceCount != newCount, "#Open refs: " + newCount + " @" + DateTime.Now);
+            if (OpenReferenceCount != newCount)
+                Debug.WriteLine("#Open refs: " + newCount + " @" + DateTime.Now);
             OpenReferenceCount = newCount;
             if (OpenReferenceCount == 0)
                 StopRefCounter();

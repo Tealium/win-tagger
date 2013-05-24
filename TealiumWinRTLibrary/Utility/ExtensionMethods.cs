@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Net;
 using System.Windows;
 
 namespace Windows.UI.Xaml
@@ -40,6 +41,18 @@ namespace Windows.UI.Xaml
             that.Unloaded += unload;
         }
 
-
+        /// <summary>
+        /// Convenience function to HTML encode a string, abstracted for the different framework versions.
+        /// </summary>
+        /// <param name="that"></param>
+        /// <returns></returns>
+        public static string HtmlEncode(this string that)
+        {
+#if NETFX_CORE
+            return WebUtility.HtmlEncode(that);
+#else
+            return HttpUtility.HtmlEncode(that);
+#endif
+        }
     }
 }

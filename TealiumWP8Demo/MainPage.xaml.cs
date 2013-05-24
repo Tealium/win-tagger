@@ -12,6 +12,7 @@ using TealiumWP8Demo.ViewModels;
 
 namespace TealiumWP8Demo
 {
+    [Tealium.TrackProperty("foo", "bar")]
     public partial class MainPage : PhoneApplicationPage
     {
         // Constructor
