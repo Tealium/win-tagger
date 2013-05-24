@@ -53,7 +53,7 @@
             <tealium:TealiumEventBehavior.Event>
                 <tealium:TealiumEvent EventName="ItemClick" VariableName="click">
                     <tealium:ParameterValue PropertyName="Foo1" PropertyValue="Bar1" />
-                    <tealium:ParameterValue PropertyName="Foo2" PropertyValue="{Binding RelativeSource={RelativeSource Mode=TemplatedParent}}" />
+                    <!--NOT SUPPORTED WIN8.0 <tealium:ParameterValue PropertyName="Foo2" PropertyValue="{Binding RelativeSource={RelativeSource Mode=TemplatedParent}}" />-->
                 </tealium:TealiumEvent>
             </tealium:TealiumEventBehavior.Event>
 
@@ -67,7 +67,7 @@
                     <GroupStyle.HeaderTemplate>
                         <DataTemplate>
                             <Grid Margin="1,0,0,6">
-                                <Button
+                                <Button x:Name="HeaderButton"
                                     AutomationProperties.Name="Group Title"
                                     Click="Header_Click"
                                     Style="{StaticResource TextPrimaryButtonStyle}" >
@@ -76,7 +76,10 @@
                                         <TextBlock Text="{StaticResource ChevronGlyph}" FontFamily="Segoe UI Symbol" Margin="0,-7,0,10" Style="{StaticResource GroupHeaderTextStyle}"/>
                                     </StackPanel>
                                     <tealium:TealiumEventBehavior.Event>
-                                        <tealium:TealiumEvent EventName="Click" VariableName="link" />
+                                        <tealium:TealiumEvent EventName="Click" VariableName="link">
+                                            <!--NOT SUPPORTED WIN8.0 <tealium:ParameterValue PropertyName="itemId" PropertyValue="{Binding Title}" />-->
+                                            <tealium:ParameterValue PropertyName="foo" PropertyValue="bar" />
+                                        </tealium:TealiumEvent>
                                     </tealium:TealiumEventBehavior.Event>
                                 </Button>
                             </Grid>

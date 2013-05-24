@@ -1,7 +1,9 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Reflection;
 using System.Runtime.InteropServices.WindowsRuntime;
 using Windows.UI.Xaml;
+using Windows.UI.Xaml.Data;
 
 namespace Tealium
 {
@@ -112,7 +114,15 @@ namespace Tealium
                     string varName = evt.VariableName;
                     if (string.IsNullOrWhiteSpace(varName))
                         varName = Constants.DEFAULT_CUSTOM_EVENT_NAME;
-                    TealiumTagger.Instance.TrackCustomEvent(varName, null);
+                    Dictionary<string, object> vars = new Dictionary<string, object>();
+                    foreach (var item in evt.Parameters)
+                    {
+                        string paramName = item.PropertyName;
+                        object paramVal = item.GetValue(ParameterValue.PropertyValueProperty);
+                        //TODO: Win 8.0 does not allow us to grab binding expressions to evaluate, will need to implement this w/ v8.1
+                        vars.Add(paramName, paramVal);
+                    }
+                    TealiumTagger.Instance.TrackCustomEvent(varName, vars);
                 }
             }
         }

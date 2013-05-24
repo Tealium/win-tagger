@@ -410,6 +410,7 @@ namespace Tealium
 
         void rootFrame_Navigated(object sender, NavigationEventArgs e)
         {
+
 #if NETFX_CORE
             object page = ((Frame)sender).Content;
 #else
@@ -418,31 +419,28 @@ namespace Tealium
 
             if (page != null)
             {
+                ((FrameworkElement)page).OnFirstFrame(() =>
+                {
+                    //We delay this call until we know the page has rendered. This helps to ensure this call fires only after navigation has completed.
+                    SetVariables(null); //clear previous vars so they don't interfere w/ the next page
+
 #if NETFX_CORE
-                LoadAutomaticNavigationProperties(page, e.Parameter);
+                    LoadAutomaticNavigationProperties(page, e.Parameter);
 #else
-                object param = null;
-                if (page is PhoneApplicationPage)
-                    param = ((PhoneApplicationPage)page).NavigationContext;
-                LoadAutomaticNavigationProperties(page,  param);
+                    object param = null;
+                    if (page is PhoneApplicationPage)
+                        param = ((PhoneApplicationPage)page).NavigationContext;
+                    LoadAutomaticNavigationProperties(page,  param);
 #endif
 
-                //Requested change: report all navigation events, not just "New" navigations
-                //if (sender != null && e.NavigationMode == NavigationMode.New)
-                //{
-                    ((FrameworkElement)page).OnFirstFrame(() =>
-                    {
-                        //We delay this call until we know the page has rendered. This helps to ensure this call fires only after navigation has completed.
-                        ReportPageNavigation(page, e.NavigationMode);
-                    });
-                //}
+                    ReportPageNavigation(page, e.NavigationMode);
+                });
             }
 
         }
 
         void rootFrame_Navigating(object sender, NavigatingCancelEventArgs e)
         {
-            SetVariables(null); //clear previous vars so they don't interfere w/ the next page
         }
 
         void queueTimer_Tick(object sender, object e)
@@ -564,7 +562,6 @@ namespace Tealium
             {
                 //auto-track enabled for navigation, report based on the type of page we are navigating to
                 pageName = page.GetType().Name;
-                SetVariable(this.settings.ViewMetricIdParam, pageName);
             }
 
             //FUTURE: track "NavigationMode" to distinguish between New, Back, & Forward navigation events
