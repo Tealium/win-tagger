@@ -117,8 +117,6 @@ TealiumTagger.Instance.TrackScreenViewed("my-page-name", new Dictionary<string, 
 The Tealium Tagger is capable of tracking any action occurring within the app utilizing 
 one of these two methods:
 
-Example:
-
 ```csharp
 
 TealiumTagger.Instance.TrackItemClicked(itemId);
@@ -128,6 +126,8 @@ TealiumTagger.Instance.TrackCustomEvent(eventVarName);
 ```
 
 You can also attach additional event data for items clicked or custom events by including a dictionary as an argument:
+
+Example:
 
 ```csharp
 
