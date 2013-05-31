@@ -36,10 +36,11 @@ Installation
 Download, open the appropriate library .sln file (ie TealiumWinRT.sln) and compile the source code under "Release" configuration in Visual Studio (VS) 2012. Include the Dynamically Linked Library (DLL) output (ie TealiumWinRT.DLL) in your project.  You may also include the source code as a separate project in your solution.
 
 To add the Tealium DLL to your project, do the following in VS:
-1. Open your project
-2. In the Solution Explorer -> Your app -> Right-click on References -> select "Add Reference..."
-3. In the Reference Manager -> select "Solution" in the left hand column -> click "Browse" -> find the appropriate Tealium library folder -> go into the "Bin" sub-folder -> goto the "Debug" or "Release" sub-folder -> select the appropriate TealiumXXXLibrary.dll file
-4. Click "Add"
+
+  1. Open your project
+  2. In the Solution Explorer -> Your app -> Right-click on References -> select "Add Reference..."
+  3. In the Reference Manager -> select "Solution" in the left hand column -> click "Browse" -> find the appropriate Tealium library folder -> go into the "Bin" sub-folder -> goto the "Debug" or "Release" sub-folder -> select the appropriate TealiumXXXLibrary.dll file
+  4. Click "Add"
 
 
 How To Use
@@ -115,6 +116,8 @@ TealiumTagger.Instance.TrackScreenViewed("my-page-name", new Dictionary<string, 
 
 The Tealium Tagger is capable of tracking any action occurring within the app utilizing 
 one of these two methods:
+
+Example:
 
 ```csharp
 
