@@ -1,7 +1,7 @@
 Tealium Win Taggers
 ====================
 
-This library provides Tealium customers the means to tag their Win8 Phone, Win7.1+ Phone and WinRT XAML
+These libraries provide Tealium customers the means to tag their Win7.1+ Phone, Win8 Phone and WinRT XAML
 applications for the purpose of leveraging the vendor-neutral tag management platform offered by Tealium.  
 
 It provides:
@@ -24,8 +24,9 @@ First, ensure an active Tealium account exists. You will need the following item
   - TealiumTargetQA
   - TealiumTargetDev
 
-Windows 8 - WinRT with XAML+C# Apps
------------------------------------
+
+XAML+C# Apps
+------------
 
 The libraries are built for use in XAML+C# applications for Win7.1+ Phone, Win8 Phone or WinRT.  Applications which use 
 HTML+WinJS can integrate the Tealium tracking code directly.
