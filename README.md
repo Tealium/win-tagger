@@ -1,9 +1,8 @@
-Tealium WinRT Tagger
+Tealium Win Taggers
 ====================
 
-This library provides Tealium customers the means to tag their WinRT XAML
-applications for the purpose of leveraging the vendor-neutral tag management
-platform offered by Tealium.  
+This library provides Tealium customers the means to tag their Win8 Phone, Win7.1+ Phone and WinRT XAML
+applications for the purpose of leveraging the vendor-neutral tag management platform offered by Tealium.  
 
 It provides:
 
@@ -28,14 +27,19 @@ First, ensure an active Tealium account exists. You will need the following item
 Windows 8 - WinRT with XAML+C# Apps
 -----------------------------------
 
-The library is built for use in XAML+C# applications for WinRT.  Applications which use 
+The libraries are built for use in XAML+C# applications for Win7.1+ Phone, Win8 Phone or WinRT.  Applications which use 
 HTML+WinJS can integrate the Tealium tracking code directly.
 
 Installation
 ------------
-Download and compile the source code under "Release" configuration in Visual Studio 2012
-and include the DLL output (TealiumWinRT.DLL) in your project.  You may also include
-the source code as a separate project in your solution.
+Download, open the appropriate library .sln file (ie TealiumWinRT.sln) and compile the source code under "Release" configuration in Visual Studio (VS) 2012. Include the Dynamically Linked Library (DLL) output (ie TealiumWinRT.DLL) in your project.  You may also include the source code as a separate project in your solution.
+
+To add the Tealium DLL to your project, do the following in VS:
+1. Open your project
+2. In the Solution Explorer -> Your app -> Right-click on References -> select "Add Reference..."
+3. In the Reference Manager -> select "Solution" in the left hand column -> click "Browse" -> find the appropriate Tealium library folder -> go into the "Bin" sub-folder -> goto the "Debug" or "Release" sub-folder -> select the appropriate TealiumXXXLibrary.dll file
+4. Click "Add"
+
 
 How To Use
 ----------------------------------
@@ -76,8 +80,21 @@ Example:
 
 Setting the "TrackPageView" attribute on a page will report a page view metric,
 regardless of whether "AutoTrackPageViews" is enabled.
-Additional properties can be set using the "TrackPropertyAttribute" and
-"TrackNavigationParameterAttribute" decorators on the class definition.
+Additional properties can be set using the "TrackProperty" attribute and
+"TrackNavigationParameter" attribute decorators on the class definition.
+
+Example:
+
+```csharp
+
+    [TrackPageProperty("myProperty1", "myValue1")]
+    public sealed partial class MyPage : Common.LayoutAwarePage
+    {
+      . . .
+    }
+
+```
+
 
 Alternatively, you can manually record a page view metric.  You may choose to do this if 
 you need to include a custom collection of properties or if you wish to delay reporting
@@ -106,6 +123,20 @@ TealiumTagger.Instance.TrackCustomEvent(eventVarName);
 
 ```
 
+You can also attach additional event data for items clicked or custom events by including a dictionary as an argument:
+
+```csharp
+
+Dictionary<string, string> myEventData = new Dictionary<string, string>();
+myEventData.add("myDataKey1", "myDataValue1");
+myEventData.add("myDataKey2", "myDataValue2");
+TealiumTagger.Instance.TrackItemClicked("myCustomClick", myEventData);
+
+
+```
+
+
+### Alternate XAML behavior for WinRT 
 For convenience, an attached behavior has also been created for use in XAML for the
 purpose of reporting custom events.
 To use this, first register the "Tealium" namespace at the top of your XAML file(s):
