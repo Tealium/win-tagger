@@ -28,7 +28,7 @@ First, ensure an active Tealium account exists. You will need the following item
 XAML+C# Apps
 ------------
 
-The libraries are built for use in XAML+C# applications for Win7.1+ Phone, Win8 Phone or WinRT.  Applications which use 
+The libraries are built for use in XAML+C# applications for Windows Phone 7.5, Windows Phone 8 or WinRT (Windows 8).  Applications which use 
 HTML+WinJS can integrate the Tealium tracking code directly.
 
 Installation
@@ -48,7 +48,7 @@ How To Use
 
 ### Import/Referencing
 
-In any *.cs file where you need to implement a Tealium method, add "Using Tealium" to the import/referencing header area.
+In any *.cs file where you need to implement a Tealium method, add "using Tealium" to the import/referencing header area.
 
 ### Initialization
 
@@ -142,7 +142,7 @@ TealiumTagger.Instance.TrackItemClicked("myCustomClick", myEventData);
 
 ### Alternate XAML behavior for WinRT 
 For convenience, an attached behavior has also been created for use in XAML for the
-purpose of reporting custom events.
+purpose of reporting custom events.  At the moment, this feature is only available in WinRT projects.
 To use this, first register the "Tealium" namespace at the top of your XAML file(s):
 
 ```html
@@ -173,7 +173,8 @@ Then on any control that has an event you wish to handle, register the attached 
 
 In the above example, we are registering for the "ItemClick" event on a GridView and will
 report it to Tealium as a "click".  The example also includes two custom properties on
-the call.
+the call.  NOTE: due to limitations in the Windows 8 WinRT APIs, the parameter name & value
+must be a hard-coded string and cannot use databinding syntax.
 
 
 Tealium Settings
