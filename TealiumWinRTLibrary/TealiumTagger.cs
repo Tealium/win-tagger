@@ -41,7 +41,6 @@ namespace Tealium
 #endif
         Frame rootFrame;
         TealiumSettings settings;
-        Dictionary<string, string> baseVariables;
         Dictionary<string, object> providedVariables;
         bool connectivityStatus = true;
         WebViewStatus webViewStatus = WebViewStatus.Unknown;
@@ -182,7 +181,7 @@ namespace Tealium
         /// <param name="variables"></param>
         public void TrackCustomEvent(string eventName, IDictionary variables = null)
         {
-            Dictionary<string, string> variablesToSend = new Dictionary<string, string>(baseVariables);
+            Dictionary<string, string> variablesToSend = CopyVarsFromBase();
             if (providedVariables != null)
             {
                 foreach (var item in providedVariables)
@@ -222,7 +221,6 @@ namespace Tealium
 
         private void RegisterWithRootFrame()
         {
-            baseVariables = new Dictionary<string, string>();
 
 #if NETFX_CORE
             LoadPersistedQueue();
@@ -504,6 +502,24 @@ namespace Tealium
                     break;
             }
             return env;
+        }
+
+        private Dictionary<string, string> CopyVarsFromBase()
+        {
+            Dictionary<string,string> baseVars = new Dictionary<string,string>();
+            if (settings.BaseVariables != null)
+            {
+                foreach (var item in settings.BaseVariables)
+                {
+                    if (item.Value != null)
+                        baseVars[item.Key] = item.Value.ToString();
+                    else
+                        baseVars[item.Key] = string.Empty;
+
+                }
+            }
+
+            return baseVars;
         }
 
         #endregion Configuration

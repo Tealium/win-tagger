@@ -79,6 +79,7 @@
                                         <tealium:TealiumEvent EventName="Click" VariableName="link">
                                             <!--NOT SUPPORTED WIN8.0 <tealium:ParameterValue PropertyName="itemId" PropertyValue="{Binding Title}" />-->
                                             <tealium:ParameterValue PropertyName="foo" PropertyValue="bar" />
+                                            <tealium:ParameterValue PropertyName="SampleGlobalVar1" PropertyValue="ValueIsOverridden" />
                                         </tealium:TealiumEvent>
                                     </tealium:TealiumEventBehavior.Event>
                                 </Button>

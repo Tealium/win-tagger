@@ -1,4 +1,6 @@
 ﻿
+using System.Collections;
+using System.Collections.Generic;
 namespace Tealium
 {
     public class TealiumSettings
@@ -61,13 +63,19 @@ namespace Tealium
         public string ClickMetricIdParam { get; set; }
 
         /// <summary>
+        /// A collection of static variables to be used on all metrics.
+        /// </summary>
+        public IDictionary<string,object> BaseVariables { get; set; }
+
+        /// <summary>
         /// Creates a new instance of the TealiumSettings object.  The account, profile, and environment
         /// properties are required and must be specified.
         /// </summary>
         /// <param name="account">The Tealium account name for your company.</param>
         /// <param name="profile">The reporting profile for your application.</param>
         /// <param name="environment">The reporting environment for your application (i.e. "Dev", "QA", "Prod").</param>
-        public TealiumSettings(string account, string profile, TealiumEnvironment environment)
+        /// <param name="baseVariables">Static variables to be used on all metric calls.</param>
+        public TealiumSettings(string account, string profile, TealiumEnvironment environment, Dictionary<string, object> baseVariables = null)
         {
             if (string.IsNullOrWhiteSpace(account) || string.IsNullOrWhiteSpace(profile))
                 TealiumStatusLog.Error("The Account, Profile, and Environment settings are required when initializing a new Settings instance.");
@@ -75,6 +83,7 @@ namespace Tealium
             this.Account = account;
             this.Profile = profile;
             this.Environment = environment;
+            this.BaseVariables = baseVariables;
 
             //set defaults for the rest of the settings.
 #if NETFX_CORE

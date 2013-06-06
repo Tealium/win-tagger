@@ -16,6 +16,7 @@ using Windows.UI.Xaml.Input;
 using Windows.UI.Xaml.Media;
 using Windows.UI.Xaml.Navigation;
 using Tealium;
+using Windows.Graphics.Display;
 
 // The Grid App template is documented at http://go.microsoft.com/fwlink/?LinkId=234226
 
@@ -79,6 +80,7 @@ namespace TealiumWinRTDemo
 #else
                     TealiumEnvironment.TealiumTargetProd //Run against the Prod environment when in "RELEASE" configuration
 #endif
+                    , new Dictionary<string, object>() { { "SampleGlobalVar1", "test-global"} }
                     ));
 
 
