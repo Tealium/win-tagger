@@ -44,6 +44,8 @@ namespace TealiumWinRTDemo
             // TODO: Create an appropriate data model for your problem domain to replace the sample data
             var sampleDataGroups = SampleDataSource.GetGroups((String)navigationParameter);
             this.DefaultViewModel["Groups"] = sampleDataGroups;
+
+            TealiumTagger.Instance.SetGlobalVariable("SampleGlobalVar2", "global-var-value");
         }
 
         /// <summary>

@@ -111,7 +111,7 @@ namespace Tealium
         #region Public API Surface
 
         /// <summary>
-        /// Adds the supplied collection of name/value pairs to the collection of variables.  These values will be persisted between calls until ClearVariables is called.
+        /// Adds the supplied collection of name/value pairs to the collection of variables.  These values will be persisted between calls until ClearVariables is called or the application navigates to a new page.
         /// </summary>
         /// <param name="variables"></param>
         public void SetVariables(IDictionary variables)
@@ -130,7 +130,7 @@ namespace Tealium
         }
 
         /// <summary>
-        /// Adds an individual name/value pair to the persisted collection of variables.
+        /// Adds an individual name/value pair to the persisted collection of variables.  The value will be persisted between calls until ClearVariables is called or the application navigates to a new page.
         /// </summary>
         /// <param name="name"></param>
         /// <param name="value"></param>
@@ -139,6 +139,36 @@ namespace Tealium
             if (providedVariables == null)
                 providedVariables = new Dictionary<string, object>();
             providedVariables[name] = value;
+        }
+
+        /// <summary>
+        /// Adds the supplied collection of name/value pairs to the collection of global/base variables.  These values will be persisted for the lifetime of the application, or until manually cleared.
+        /// </summary>
+        /// <param name="variables"></param>
+        public void SetGlobalVariables(IDictionary variables)
+        {
+            if (variables == null)
+            {
+                return;
+            }
+            settings.BaseVariables = new Dictionary<string, object>();
+            var e = variables.GetEnumerator();
+            while (e.MoveNext())
+            {
+                settings.BaseVariables[e.Key.ToString()] = e.Value;
+            }
+        }
+
+        /// <summary>
+        /// Adds an individual name/value pair to the collection of global/base variables.  The value will be persisted for the lifetime of the application, or until manually cleared.
+        /// </summary>
+        /// <param name="name"></param>
+        /// <param name="value"></param>
+        public void SetGlobalVariable(string name, string value)
+        {
+            if (settings.BaseVariables == null)
+                settings.BaseVariables = new Dictionary<string, object>();
+            settings.BaseVariables[name] = value;
         }
 
         /// <summary>
@@ -158,7 +188,7 @@ namespace Tealium
 
         /// <summary>
         /// Reports a page view event with the specified details.
-        /// Variables that have the same name as persisted variables set by SetVariables will take precedence.  All variables passed to this call will not be persisted.
+        /// Variables that have the same name as persisted variables set by SetVariables will take precedence.  All variables passed to this call will not be persisted, with the exception of the screen/view/page name.
         /// </summary>
         /// <param name="viewName"></param>
         /// <param name="variables"></param>
