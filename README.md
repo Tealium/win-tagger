@@ -139,6 +139,41 @@ TealiumTagger.Instance.TrackItemClicked("myCustomClick", myEventData);
 
 ```
 
+### Custom Global Data
+
+The following instance methods are available for adding global data that will be sent with EVERY call dispatch:
+
+```csharp
+
+TealiumTagger.Instance.SetGlobalVariable(string, string);
+
+TealiumTagger.Instance.SetGlobalVariables(dictionary);
+
+```
+
+Example:
+
+```csharp
+
+Dictionary<string, string> myGlobalData = new Dictionary<string, string>();
+myGlobalData.add("myDataKey1", "myDataValue1");
+myGlobalData.add("myDataKey2", "myDataValue2");
+TealiumTagger.Instance.SetGlobalVariables(myGlobalData);
+
+
+```
+
+You can also add a dictionary of custom data to the init method:
+
+```csharp
+
+Dictionary<string, string> myGlobalData = new Dictionary<string, string>();
+myGlobalData.add("myDataKey1", "myDataValue1");
+myGlobalData.add("myDataKey2", "myDataValue2");
+TealiumTagger.Initialize(applicationFrame, new TealiumSettings("yourAccountName", "yourProfileName", "targetEnvironment", myGlobalData);
+
+
+```
 
 ### Alternate XAML behavior for WinRT 
 For convenience, an attached behavior has also been created for use in XAML for the
