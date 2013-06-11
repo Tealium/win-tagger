@@ -80,10 +80,13 @@ namespace TealiumWinRTDemo
 #else
                     TealiumEnvironment.TealiumTargetProd //Run against the Prod environment when in "RELEASE" configuration
 #endif
-                    , new Dictionary<string, object>() { { "SampleGlobalVar1", "test-global"} }
+                    , new Dictionary<string, object>() { { "SampleGlobalVar1", "test-global"}, {"ScreenOrientation", Windows.Graphics.Display.DisplayProperties.CurrentOrientation.ToString()} }
                     ));
 
-
+                //TEALIUM: track the current screen orientation as a global variable...
+                Windows.Graphics.Display.DisplayProperties.OrientationChanged += DisplayProperties_OrientationChanged;
+                
+                
                 // Place the frame in the current Window
                 Window.Current.Content = rootFrame;
             }
@@ -99,6 +102,16 @@ namespace TealiumWinRTDemo
             }
             // Ensure the current window is active
             Window.Current.Activate();
+        }
+
+        /// <summary>
+        /// Tealium Demo: keep track of the screen orientation as a tracking variable.
+        /// </summary>
+        /// <param name="sender"></param>
+        void DisplayProperties_OrientationChanged(object sender)
+        {
+            TealiumTagger.Instance.SetGlobalVariable("ScreenOrientation", Windows.Graphics.Display.DisplayProperties.CurrentOrientation.ToString());
+            //You may also want to track the orientation change as a custom event.
         }
 
         /// <summary>
