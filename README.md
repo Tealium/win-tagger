@@ -235,5 +235,5 @@ overrides the default names given to the view and click events.
 Support
 -------
 
-For additional help and support, please send all inquires to mobile_support@tealium.com
+For additional help and support, please send contact your account manager.
 
