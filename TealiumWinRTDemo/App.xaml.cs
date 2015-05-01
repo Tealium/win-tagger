@@ -57,6 +57,18 @@ namespace TealiumWinRTDemo
                 //Associate the frame with a SuspensionManager key                                
                 SuspensionManager.RegisterFrame(rootFrame, "AppFrame");
 
+                //TEALIUM: example for initializing the Tealium Tagger
+                TealiumTagger.Initialize(new TealiumSettings(
+                    "tealiummobile", //Tealium account name
+                    "win", //Tealium profile name
+#if DEBUG
+                    TealiumEnvironment.TealiumTargetDev //Run against the Dev environment when in "DEBUG" configuration
+#else
+                    TealiumEnvironment.TealiumTargetProd //Run against the Prod environment when in "RELEASE" configuration
+#endif
+                    , new Dictionary<string, object>() { { "SampleGlobalVar1", "test-global" }, { "ScreenOrientation", Windows.Graphics.Display.DisplayProperties.CurrentOrientation.ToString() } }
+                    ));
+
                 if (args.PreviousExecutionState == ApplicationExecutionState.Terminated)
                 {
                     // Restore the saved session state only when appropriate
@@ -70,18 +82,6 @@ namespace TealiumWinRTDemo
                         //Assume there is no state and continue
                     }
                 }
-
-                //TEALIUM: example for initializing the Tealium Tagger
-                TealiumTagger.Initialize(new TealiumSettings(
-                    "win8", //Tealium account name
-                    "main", //Tealium profile name
-#if DEBUG
-                    TealiumEnvironment.TealiumTargetDev //Run against the Dev environment when in "DEBUG" configuration
-#else
-                    TealiumEnvironment.TealiumTargetProd //Run against the Prod environment when in "RELEASE" configuration
-#endif
-                    , new Dictionary<string, object>() { { "SampleGlobalVar1", "test-global"}, {"ScreenOrientation", Windows.Graphics.Display.DisplayProperties.CurrentOrientation.ToString()} }
-                    ));
 
                 //TEALIUM: track the current screen orientation as a global variable...
                 Windows.Graphics.Display.DisplayProperties.OrientationChanged += DisplayProperties_OrientationChanged;

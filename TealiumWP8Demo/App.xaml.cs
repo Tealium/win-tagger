@@ -9,6 +9,7 @@ using Microsoft.Phone.Shell;
 using TealiumWP8Demo.Resources;
 using TealiumWP8Demo.ViewModels;
 using Tealium;
+using System.Collections.Generic;
 
 namespace TealiumWP8Demo
 {
@@ -151,13 +152,15 @@ namespace TealiumWP8Demo
             // Ensure we don't initialize again
             phoneApplicationInitialized = true;
 
-            TealiumTagger.Initialize(RootFrame, new TealiumSettings("win8", "main", 
+            TealiumTagger.Initialize(RootFrame, new TealiumSettings(
+                    "tealiummobile", //Tealium account name
+                    "win", //Tealium profile name
 #if DEBUG
-                TealiumEnvironment.TealiumTargetDev
+                TealiumEnvironment.TealiumTargetDev,
 #else
-                TealiumEnvironment.TealiumTargetProd
+                TealiumEnvironment.TealiumTargetProd,
 #endif
-                ));
+                new Dictionary<string, object>() { { "Sample-Global-Variable", "Sample-Global-Value" } }));
         }
 
         // Do not add any additional code to this method

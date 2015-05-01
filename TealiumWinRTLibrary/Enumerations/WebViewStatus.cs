@@ -25,7 +25,12 @@ namespace Tealium
         /// <summary>
         /// WebView has encountered an error, likely due to the app being offline.
         /// </summary>
-        Failure
+        Failure,
+
+        /// <summary>
+        /// WebView was loaded successfully, but disabled by the configuration options.
+        /// </summary>
+        Disabled
     }
 
 }

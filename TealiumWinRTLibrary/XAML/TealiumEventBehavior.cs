@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Reflection;
 using System.Runtime.InteropServices.WindowsRuntime;
 using Windows.UI.Xaml;
+using Windows.UI.Xaml.Controls;
 using Windows.UI.Xaml.Data;
 
 namespace Tealium
@@ -10,7 +11,7 @@ namespace Tealium
     /// <summary>
     /// Attached property/behavior that listens for a WinRT event and fires a corresponding Tealium event in response.
     /// </summary>
-    public class TealiumEventBehavior : DependencyObject
+    public class TealiumEventBehavior
     {
         /// <summary>
         /// Gets the attached property for the registered Tealium event.
@@ -105,21 +106,23 @@ namespace Tealium
         /// <param name="args"></param>
         internal static void EventActionHandler(object sender, object args)
         {
-            
+            object context = args;
             if (sender != null && typeof(DependencyObject).GetTypeInfo().IsAssignableFrom(sender.GetType().GetTypeInfo()))
             {
                 TealiumEvent evt = GetEvent((DependencyObject)sender);
                 if (evt != null)
                 {
+                    //evt.DataContext = context;
                     string varName = evt.VariableName;
                     if (string.IsNullOrWhiteSpace(varName))
                         varName = Constants.DEFAULT_CUSTOM_EVENT_NAME;
                     Dictionary<string, object> vars = new Dictionary<string, object>();
                     foreach (var item in evt.Parameters)
                     {
+                        item.DataContext = context;
                         string paramName = item.PropertyName;
                         object paramVal = item.GetValue(ParameterValue.PropertyValueProperty);
-                        //TODO: Win 8.0 does not allow us to grab binding expressions to evaluate, will need to implement this w/ v8.1
+                        
                         vars.Add(paramName, paramVal);
                     }
                     TealiumTagger.Instance.TrackCustomEvent(varName, vars);

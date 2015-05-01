@@ -5,7 +5,7 @@ namespace Tealium
     /// <summary>
     /// Defines a name/value pair for a Tealium parameter that is defined in XAML.  Either property can be data bound.
     /// </summary>
-    public class ParameterValue : DependencyObject
+    public class ParameterValue : FrameworkElement
     {
 
         /// <summary>
@@ -24,7 +24,8 @@ namespace Tealium
 
 
         /// <summary>
-        /// The value of the parameter to include in the Tealium tracking call.
+        /// The value of the parameter to include in the Tealium tracking call.  This can be a static value or use {Binding} syntax.
+        /// If bound, the default context is the event args object from the action's event handler.
         /// </summary>
         public object PropertyValue
         {

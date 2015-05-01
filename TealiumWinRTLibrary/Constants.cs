@@ -9,7 +9,7 @@ namespace Tealium
         /// <summary>
         /// The format of the URL for the mobile tracking page.  Values are substituted in depending on the provided settings.
         /// </summary>
-        internal const string TRACKER_EMBED_URL_FORMAT = "{0}://tags.tiqcdn.com/utag/{1}/{2}/{3}/mobile.html";
+        internal const string TRACKER_EMBED_URL_FORMAT = "{0}://tags.tiqcdn.com/utag/{1}/{2}/{3}/mobile.html{4}";
 
         /// <summary>
         /// The format of the utag.track script called for every metric.
@@ -60,5 +60,10 @@ namespace Tealium
         /// String representation of "prod" environment.
         /// </summary>
         internal const string ENV_PROD = "prod";
+
+        /// <summary>
+        /// The current major version supported by the library.
+        /// </summary>
+        internal const string CURRENT_LIBRARY_VERSION = "4";
     }
 }
