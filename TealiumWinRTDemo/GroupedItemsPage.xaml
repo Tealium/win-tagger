@@ -53,7 +53,7 @@
             <tealium:TealiumEventBehavior.Event>
                 <tealium:TealiumEvent EventName="ItemClick" VariableName="click">
                     <tealium:ParameterValue PropertyName="Foo1" PropertyValue="Bar1" />
-                    <!--NOT SUPPORTED WIN8.0 <tealium:ParameterValue PropertyName="Foo2" PropertyValue="{Binding RelativeSource={RelativeSource Mode=TemplatedParent}}" />-->
+                    <tealium:ParameterValue PropertyName="Title" PropertyValue="{Binding ClickedItem.Title}" />
                 </tealium:TealiumEvent>
             </tealium:TealiumEventBehavior.Event>
 
