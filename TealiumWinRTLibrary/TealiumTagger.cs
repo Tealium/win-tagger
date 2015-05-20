@@ -34,18 +34,10 @@ namespace Tealium
     {
         #region Private Members
 
-#if NETFX_CORE
-        WebView taggerWebView;
-#elif WINDOWS_PHONE
-        WebBrowser taggerWebView;
-#endif
         Frame rootFrame;
         TealiumSettings settings;
         Dictionary<string, object> providedVariables;
-        bool connectivityStatus = true;
-        WebViewStatus webViewStatus = WebViewStatus.Unknown;
-        RequestQueue requestQueue = new RequestQueue();
-        DispatcherTimer queueTimer = new DispatcherTimer() { Interval = TimeSpan.FromMilliseconds(200) };
+        TrackingFrame trackingFrame;
 
         #endregion Private Members
 
@@ -252,10 +244,7 @@ namespace Tealium
         private void RegisterWithRootFrame()
         {
 
-#if NETFX_CORE
-            LoadPersistedQueue();
-#endif
-            InitializeWebView();
+            InitializeTrackingFrame();
 
             if (rootFrame == null)
             {
@@ -285,27 +274,10 @@ namespace Tealium
             }
         }
 
-        private void InitializeWebView()
+        private void InitializeTrackingFrame()
         {
-            queueTimer.Tick += queueTimer_Tick;
-#if NETFX_CORE
-            taggerWebView = new WebView();
-#elif WINDOWS_PHONE
-            taggerWebView = new WebBrowser();
-            taggerWebView.IsScriptEnabled = true;
-#endif
-
-            OpenTrackingPage();
-        }
-
-        private void OpenTrackingPage()
-        {
-            taggerWebView.NavigationFailed += taggerWebView_NavigationFailed;
-            taggerWebView.LoadCompleted += taggerWebView_LoadCompleted;
-
             string trackingPage = GetWebViewUrl();
-            webViewStatus = WebViewStatus.Loading;
-            taggerWebView.Navigate(new Uri(trackingPage));
+            trackingFrame = new TrackingFrame(trackingPage);
         }
 
         private void ErrorRootIsNotFrame()
@@ -322,12 +294,6 @@ namespace Tealium
                 rootFrame.Navigated += rootFrame_Navigated;
                 rootFrame.Unloaded += rootFrame_Unloaded;
 
-#if NETFX_CORE
-                Application.Current.Suspending += Current_Suspending;
-                Application.Current.Resuming += Current_Resuming;
-#endif
-                NetworkChange.NetworkAddressChanged += NetworkChange_NetworkAddressChanged;
-
                 if (rootFrame.Content != null)
                 {
                     LoadAutomaticNavigationProperties(rootFrame.Content, null);
@@ -343,11 +309,6 @@ namespace Tealium
                 rootFrame.Navigating -= rootFrame_Navigating;
                 rootFrame.Navigated -= rootFrame_Navigated;
                 rootFrame.Unloaded -= rootFrame_Unloaded;
-#if NETFX_CORE
-                Application.Current.Suspending -= Current_Suspending;
-                Application.Current.Resuming -= Current_Resuming;
-#endif
-                NetworkChange.NetworkAddressChanged -= NetworkChange_NetworkAddressChanged;
             }
         }
 
@@ -355,26 +316,6 @@ namespace Tealium
 
 
         #region Event Handlers
-
-        void taggerWebView_LoadCompleted(object sender, NavigationEventArgs e)
-        {
-            taggerWebView.NavigationFailed -= taggerWebView_NavigationFailed;
-            taggerWebView.NavigationFailed += taggerWebView_NavigationFailed;
-            taggerWebView.LoadCompleted -= taggerWebView_LoadCompleted;
-            webViewStatus = WebViewStatus.Loaded;
-            ProcessRequestQueue();
-        }
-
-#if NETFX_CORE
-        void taggerWebView_NavigationFailed(object sender, WebViewNavigationFailedEventArgs e)
-#else
-        void taggerWebView_NavigationFailed(object sender, NavigationFailedEventArgs e)
-#endif
-        {
-            taggerWebView.NavigationFailed -= taggerWebView_NavigationFailed;
-            taggerWebView.LoadCompleted -= taggerWebView_LoadCompleted;
-            webViewStatus = WebViewStatus.Failure;
-        }
 
 #if NETFX_CORE
         void Current_VisibilityChanged(object sender, Windows.UI.Core.VisibilityChangedEventArgs e)
@@ -392,48 +333,9 @@ namespace Tealium
 #endif
 
 
-#if NETFX_CORE
-        async void Current_Resuming(object sender, object e)
-        {
-            TealiumStatusLog.Information("Application.Current.Resuming");
-            await LoadPersistedQueue();
-            TealiumStatusLog.Information("Queue loaded from disk");
-        }
-
-        async void Current_Suspending(object sender, Windows.ApplicationModel.SuspendingEventArgs e)
-        {
-            TealiumStatusLog.Information("Application.Current.Suspending");
-            SuspendingDeferral deferral = e.SuspendingOperation.GetDeferral();
-            var throwaway = await StorageHelper.Save(requestQueue.ToList(), "_tealium_queue");
-            
-            TealiumStatusLog.Information("Queue saved to disk");
-            deferral.Complete(); //needed to ensure the suspend process waits for this to finish
-        }
-#endif
-
-
         void rootFrame_Unloaded(object sender, RoutedEventArgs e)
         {
             UnsubscribeEvents();
-        }
-
-        void NetworkChange_NetworkAddressChanged(object sender, EventArgs e)
-        {
-            bool newConnectivityStatus = System.Net.NetworkInformation.NetworkInterface.GetIsNetworkAvailable();
-            if (newConnectivityStatus != connectivityStatus && newConnectivityStatus)
-            {
-                try
-                {
-                    //run following command on UI thread
-                    ThreadHelper.OnUiThread(()=>ProcessRequestQueue());
-                    
-                }
-                catch (Exception ex)
-                {
-                    TealiumStatusLog.Error(ex.Message);
-                }
-            }
-            connectivityStatus = newConnectivityStatus;
         }
 
         void rootFrame_Navigated(object sender, NavigationEventArgs e)
@@ -471,28 +373,6 @@ namespace Tealium
         {
         }
 
-        void queueTimer_Tick(object sender, object e)
-        {
-            if (requestQueue.IsEmpty)
-                queueTimer.Stop();
-
-            string invokeScript = string.Empty;
-            if (requestQueue.TryDequeue(out invokeScript) && !string.IsNullOrWhiteSpace(invokeScript))
-            {
-                try
-                {
-                    taggerWebView.InvokeScript("eval", new[] { invokeScript });
-                    TealiumStatusLog.Information(invokeScript);
-                }
-                catch (Exception ex)
-                {
-                    TealiumStatusLog.Error(ex.Message);
-                }
-            }
-
-        }
-
-
         #endregion Event Handlers
 
 
@@ -504,13 +384,19 @@ namespace Tealium
                     settings.UseSSL ? "https" : "http",
                     settings.Account,
                     settings.Profile,
-                    GetEnvironmentString(settings.Environment));
+                    GetEnvironmentString(settings.Environment),
+                    BustCacheParam());
+        }
+
+        private object BustCacheParam()
+        {
+            return "?bust=" + DateTimeOffset.Now.Ticks;
         }
 
         private bool SettingsValid()
         {
             string embedUrl = GetWebViewUrl();
-            return (taggerWebView != null && !string.IsNullOrEmpty(embedUrl) && Uri.IsWellFormedUriString(embedUrl, UriKind.Absolute));
+            return !string.IsNullOrEmpty(embedUrl) && Uri.IsWellFormedUriString(embedUrl, UriKind.Absolute);
         }
 
         private object GetEnvironmentString(TealiumEnvironment tealiumEnvironment)
@@ -556,11 +442,6 @@ namespace Tealium
 
         #region Initialization
 
-        private bool IsFrameReady()
-        {
-            return taggerWebView.Source != null;
-        }
-
         #endregion Initialization
 
         #region Reporting
@@ -585,22 +466,17 @@ namespace Tealium
 
         private void SendEvent(string eventName, string jsonParams)
         {
-            if (!SettingsValid())
-                return;
-
             string invokeScript = string.Format(Constants.UTAG_INVOKE_SCRIPT,
                     eventName, jsonParams);
 
-            requestQueue.Enqueue(invokeScript);
-            ProcessRequestQueue();
-
+            trackingFrame.TrackEvent(invokeScript);
         }
 
         private void ReportPageNavigation(object page, NavigationMode navigationMode = NavigationMode.New)
         {
             string pageName = null;
 
-            var name = TypeHelper.GetAttribute<TrackPageViewAttribute>(page);// page.GetType().GetTypeInfo().GetCustomAttribute<TrackPageViewAttribute>();
+            var name = TypeHelper.GetAttribute<TrackPageViewAttribute>(page);
             if (name != null)
                 pageName = name.Value;
 
@@ -624,7 +500,7 @@ namespace Tealium
         {
             Dictionary<string, object> vars = new Dictionary<string, object>();
 
-            var props = TypeHelper.GetAttributes<TrackPropertyAttribute>(page);// page.GetType().GetTypeInfo().GetCustomAttributes<TrackPropertyAttribute>();
+            var props = TypeHelper.GetAttributes<TrackPropertyAttribute>(page);
             if (props != null && props.Any())
             {
                 foreach (var item in props)
@@ -635,7 +511,7 @@ namespace Tealium
 
             }
 
-            var pars = TypeHelper.GetAttributes<TrackNavigationParameterAttribute>(page);// page.GetType().GetTypeInfo().GetCustomAttributes<TrackNavigationParameterAttribute>();
+            var pars = TypeHelper.GetAttributes<TrackNavigationParameterAttribute>(page);
             if (pars != null && pars.Any())
             {
                 foreach (var item in pars)
@@ -670,46 +546,5 @@ namespace Tealium
 
         #endregion Reporting
 
-        #region Offline
-
-        private bool IsOnline()
-        {
-            connectivityStatus = System.Net.NetworkInformation.NetworkInterface.GetIsNetworkAvailable();
-            return connectivityStatus;
-        }
-
-#if NETFX_CORE
-        private async Task LoadPersistedQueue()
-        {
-            var resumedQueue = await StorageHelper.Load<List<string>>(Constants.QUEUE_STORAGE_PATH);
-            if (resumedQueue != null && resumedQueue.Count > 0)
-            {
-                foreach (var item in resumedQueue)
-                {
-                    requestQueue.Enqueue(item);
-
-                }
-            }
-        }
-#endif
-
-        private void ProcessRequestQueue()
-        {
-            if (webViewStatus != WebViewStatus.Loaded
-                    || !IsOnline()
-                    || queueTimer.IsEnabled
-                    || requestQueue.IsEmpty)
-            {
-                if (webViewStatus == WebViewStatus.Failure && IsOnline())
-                    OpenTrackingPage(); //if the app was offline when launched, the tracking page wouldn't have loaded, so try loading it now.
-                return;
-            }
-
-            //kick off timer to process the queue
-            queueTimer.Start();
-
-        }
-
-        #endregion Offline
     }
 }

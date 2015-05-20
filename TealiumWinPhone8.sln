@@ -1,6 +1,8 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio 2012
+# Visual Studio 2013
+VisualStudioVersion = 12.0.31101.0
+MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TealiumWP8Demo", "TealiumWP8Demo\TealiumWP8Demo.csproj", "{CD7D3502-D4A8-4DDA-AB25-E35C4F6DFD62}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TealiumWP8Library", "TealiumWP8Library\TealiumWP8Library.csproj", "{5119F9F2-7A0B-4582-A134-BBA64C030836}"
@@ -15,18 +17,6 @@ Global
 		Release|x86 = Release|x86
 	EndGlobalSection
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution
-		{5119F9F2-7A0B-4582-A134-BBA64C030836}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{5119F9F2-7A0B-4582-A134-BBA64C030836}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{5119F9F2-7A0B-4582-A134-BBA64C030836}.Debug|ARM.ActiveCfg = Debug|ARM
-		{5119F9F2-7A0B-4582-A134-BBA64C030836}.Debug|ARM.Build.0 = Debug|ARM
-		{5119F9F2-7A0B-4582-A134-BBA64C030836}.Debug|x86.ActiveCfg = Debug|x86
-		{5119F9F2-7A0B-4582-A134-BBA64C030836}.Debug|x86.Build.0 = Debug|x86
-		{5119F9F2-7A0B-4582-A134-BBA64C030836}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{5119F9F2-7A0B-4582-A134-BBA64C030836}.Release|Any CPU.Build.0 = Release|Any CPU
-		{5119F9F2-7A0B-4582-A134-BBA64C030836}.Release|ARM.ActiveCfg = Release|ARM
-		{5119F9F2-7A0B-4582-A134-BBA64C030836}.Release|ARM.Build.0 = Release|ARM
-		{5119F9F2-7A0B-4582-A134-BBA64C030836}.Release|x86.ActiveCfg = Release|x86
-		{5119F9F2-7A0B-4582-A134-BBA64C030836}.Release|x86.Build.0 = Release|x86
 		{CD7D3502-D4A8-4DDA-AB25-E35C4F6DFD62}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{CD7D3502-D4A8-4DDA-AB25-E35C4F6DFD62}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{CD7D3502-D4A8-4DDA-AB25-E35C4F6DFD62}.Debug|Any CPU.Deploy.0 = Debug|Any CPU
@@ -45,6 +35,18 @@ Global
 		{CD7D3502-D4A8-4DDA-AB25-E35C4F6DFD62}.Release|x86.ActiveCfg = Release|x86
 		{CD7D3502-D4A8-4DDA-AB25-E35C4F6DFD62}.Release|x86.Build.0 = Release|x86
 		{CD7D3502-D4A8-4DDA-AB25-E35C4F6DFD62}.Release|x86.Deploy.0 = Release|x86
+		{5119F9F2-7A0B-4582-A134-BBA64C030836}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{5119F9F2-7A0B-4582-A134-BBA64C030836}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{5119F9F2-7A0B-4582-A134-BBA64C030836}.Debug|ARM.ActiveCfg = Debug|ARM
+		{5119F9F2-7A0B-4582-A134-BBA64C030836}.Debug|ARM.Build.0 = Debug|ARM
+		{5119F9F2-7A0B-4582-A134-BBA64C030836}.Debug|x86.ActiveCfg = Debug|x86
+		{5119F9F2-7A0B-4582-A134-BBA64C030836}.Debug|x86.Build.0 = Debug|x86
+		{5119F9F2-7A0B-4582-A134-BBA64C030836}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{5119F9F2-7A0B-4582-A134-BBA64C030836}.Release|Any CPU.Build.0 = Release|Any CPU
+		{5119F9F2-7A0B-4582-A134-BBA64C030836}.Release|ARM.ActiveCfg = Release|ARM
+		{5119F9F2-7A0B-4582-A134-BBA64C030836}.Release|ARM.Build.0 = Release|ARM
+		{5119F9F2-7A0B-4582-A134-BBA64C030836}.Release|x86.ActiveCfg = Release|x86
+		{5119F9F2-7A0B-4582-A134-BBA64C030836}.Release|x86.Build.0 = Release|x86
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

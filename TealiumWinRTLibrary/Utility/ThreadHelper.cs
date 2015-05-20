@@ -16,7 +16,7 @@ namespace Tealium.Utility
         public static void OnUiThread(Action a)
         {
 #if NETFX_CORE
-            CoreWindow.GetForCurrentThread().Dispatcher.RunAsync(CoreDispatcherPriority.Normal, () =>
+            Windows.ApplicationModel.Core.CoreApplication.MainView.CoreWindow.Dispatcher.RunAsync(CoreDispatcherPriority.Normal, () =>
             {
                 if (a != null)
                     a.Invoke();
@@ -29,7 +29,7 @@ namespace Tealium.Utility
 
         public static void OnBackgroundThread(Action a)
         {
-
+            throw new NotImplementedException();
         }
     }
 }
