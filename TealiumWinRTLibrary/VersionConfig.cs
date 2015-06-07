@@ -3,7 +3,11 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+#if WINDOWS_PHONE_LEGACY
+using Newtonsoft.Json.Linq;
+#else
 using Windows.Data.Json;
+#endif
 
 namespace Tealium
 {
@@ -37,14 +41,42 @@ namespace Tealium
 
         public static VersionConfig Parse(string json)
         {
+#if WINDOWS_PHONE_LEGACY
+            var jobj = JObject.Parse(json);
+#else
             var jobj = JsonObject.Parse(json);
+#endif
             if (jobj != null)
             {
                 var currentVer = jobj[Constants.CURRENT_LIBRARY_VERSION];
+#if WINDOWS_PHONE_LEGACY
+                if (currentVer != null && currentVer.Type == JTokenType.Object)
+#else
                 if (currentVer != null && currentVer.ValueType == JsonValueType.Object)
+#endif
                 {
                     var config = new VersionConfig();
+#if WINDOWS_PHONE_LEGACY
+                    if (currentVer["_is_enabled"] != null)
+                        config.IsEnabled = currentVer.Value<bool>("_is_enabled");
+                    if (currentVer["battery_saver"] != null)
+                        config.BatterySaver = currentVer.Value<bool>("battery_saver");
+                    if (currentVer["dispatch_expiration"] != null)
+                        config.DispatchExpiration = currentVer.Value<int>("dispatch_expiration");
+                    if (currentVer["event_batch_size"] != null)
+                        config.EventBatchSize = currentVer.Value<int>("event_batch_size");
+                    if (currentVer["offline_dispatch_limit"] != null)
+                        config.OfflineDispatchLimit = currentVer.Value<int>("offline_dispatch_limit");
+                    if (currentVer["wifi_only_sending"] != null)
+                        config.WifiOnlySending = currentVer.Value<bool>("wifi_only_sending");
 
+                    if (currentVer["ivar_tracking"] != null)
+                        config.IVarTracking = currentVer.Value<bool>("ivar_tracking");
+                    if (currentVer["mobile_companion"] != null)
+                        config.MobileCompanion = currentVer.Value<bool>("mobile_companion");
+                    if (currentVer["ui_auto_tracking"] != null)
+                        config.UIAutoTracking = currentVer.Value<bool>("ui_auto_tracking");
+#else
                     var currObj = currentVer.GetObject();
 
                     if (currObj.ContainsKey("_is_enabled"))
@@ -66,6 +98,7 @@ namespace Tealium
                         config.MobileCompanion = ParseAsBoolean(currObj["mobile_companion"]);
                     if (currObj.ContainsKey("ui_auto_tracking"))
                         config.UIAutoTracking = ParseAsBoolean(currObj["ui_auto_tracking"]);
+#endif
 
                     return config;
                 }
@@ -81,6 +114,7 @@ namespace Tealium
             }
         }
 
+#if !WINDOWS_PHONE_LEGACY
         private static bool ParseAsBoolean(IJsonValue jsonValue, bool defaultValue = false)
         {
             if (jsonValue.ValueType == JsonValueType.Boolean)
@@ -118,6 +152,7 @@ namespace Tealium
                 return defaultValue;
             }
         }
+#endif
 
         protected VersionConfig() { }
 

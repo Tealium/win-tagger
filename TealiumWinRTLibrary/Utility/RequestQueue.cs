@@ -135,7 +135,7 @@ namespace Tealium.Utility
 
             RequestQueueEntry t;
             bool purge = true;
-            while (purge)
+            while (purge && q.Count > 0)
             {
 #if NETFX_CORE
                 q.TryPeek(out t);
