@@ -297,7 +297,7 @@ namespace Tealium.Utility
 
         }
 
-        void ConnectionUtility_ConnectionStatusChanged(object sender, EventArgs e)
+        void ConnectionUtility_ConnectionStatusChanged(object sender, bool e)
         {
             if (ConnectionUtility.IsOnline)
             {
