@@ -155,7 +155,7 @@ namespace Tealium.Utility
 
         private void PurgeExcess()
         {
-            if (q.Count < 0)
+            if (q.Count < 0 || maxSize < 0)
                 return;
 
             for (int i = 0; i < q.Count - maxSize; i++)
