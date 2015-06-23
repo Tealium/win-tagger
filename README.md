@@ -1,34 +1,19 @@
-Tealium Win Taggers
-====================
+Tealium Win Tagger - 1.1
+========================
 
-These libraries provide Tealium customers the means to tag their Win7.1+ Phone, Win8 Phone and WinRT XAML
-applications for the purpose of leveraging the vendor-neutral tag management platform offered by Tealium.  
-
-It provides:
-
-- web-analytics integration via the Tealium platform
-- automatic view controller tracking, similar to traditional web page tracking, utilizing your favorite analytics vendor
-- intelligent network-sensitive caching
-- simple to use messages, including singleton or dependency-injection-friendly instances.
-- custom action tracking
-- implemented with the user in mind. All tracking calls are asynchronous as to not interfere or degrade the user experience. 
+The library included allow the native tagging of a mobile application once and then configuration of third-party analytic services remotely through [Tealium IQ](http://tealium.com/products/enterprise-tag-management/); all without needing to recode and redeploy an app for every update to these services. 
 
 
-Tealium Requirements
+Requirements
 --------------------
-First, ensure an active Tealium account exists. You will need the following items:
-- Your Tealium Account Id (it will likely be your company name)
-- The Tealium Profile name to be associated with the app (your account may have several profiles, ideally one of them is dedicated to your iOS app)
-- The Tealium environment to use:
-  - TealiumTargetProd
-  - TealiumTargetQA
-  - TealiumTargetDev
+- Visual Studio 2013+
+- Minimum build target of WinPhone 8.0+
 
 
 XAML+C# Apps
 ------------
 
-The libraries are built for use in XAML+C# applications for Windows Phone 7.5, Windows Phone 8 or WinRT (Windows 8).  Applications which use 
+The libraries are built for use in XAML+C# applications for Windows Phone 8 or WinRT (Windows 8).  Applications which use 
 HTML+WinJS can integrate the Tealium tracking code directly.
 
 Installation
@@ -237,3 +222,6 @@ Support
 
 For additional help and support, please send contact your account manager.
 
+
+--------------------------------------------------------
+Copyright (C) 2012-2015, Tealium Inc.

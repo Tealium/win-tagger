@@ -91,7 +91,7 @@ namespace Tealium
 #endif
             this.AutoTrackPageViews = true;
             this.UseSSL = false;
-            ViewMetricEventName = Constants.DEFAULT_VIEW_EVENT_NAME;
+            // ViewMetricEventName = Constants.DEFAULT_VIEW_EVENT_NAME;
             ClickMetricEventName = Constants.DEFAULT_CLICK_EVENT_NAME;
             ViewMetricIdParam = Constants.DEFAULT_VIEW_ID_PARAM;
             ClickMetricIdParam = Constants.DEFAULT_CLICK_ID_PARAM;

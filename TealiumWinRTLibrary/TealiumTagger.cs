@@ -385,7 +385,31 @@ namespace Tealium
                     settings.Account,
                     settings.Profile,
                     GetEnvironmentString(settings.Environment),
-                    BustCacheParam());
+                    QueryParams());
+                    //BustCacheParam());
+        }
+
+        private object QueryParams()
+        {
+            return "?platform=windows_phone&library_version=" + LibVersion() + 
+                   "&timestamp_unix=" + Timestamp();
+        }
+/*
+        private object OSVersion()
+        {
+            // Firmware check best available at moment
+            Windows.Security.ExchangeActiveSyncProvisioning.EasClientDeviceInformation deviceInfo = new Windows.Security.ExchangeActiveSyncProvisioning.EasClientDeviceInformation();
+            return deviceInfo.SystemFirmwareVersion;
+        }
+*/
+        private object LibVersion()
+        {
+            return "1.1";
+        }
+
+        private object Timestamp()
+        {
+            return DateTime.UtcNow.Subtract(new DateTime(1970,1,1)).TotalSeconds.ToString("0");
         }
 
         private object BustCacheParam()
