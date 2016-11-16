@@ -2,7 +2,7 @@ Tealium Win Tagger - 1.1
 ========================
 
 **********************
-![](https://github.com/Tealium/ios-library/wiki/images/warning_30.png) This repo will no longer be updated, please use the newer [win-library repo](https://github.com/Tealium/win-library)
+<img align="left" src="https://res.cloudinary.com/dfpz40r7j/image/upload/v1479312678/warning-icon-60_yd8bwd.png"> This library has been replaced by the [win-library](https://github.com/tealium/tealium-ios) repository. No further development or bug fixes planned for this repo.
 **********************
 
 The library included allow the native tagging of a mobile application once and then configuration of third-party analytic services remotely through [Tealium IQ](http://tealium.com/products/enterprise-tag-management/); all without needing to recode and redeploy an app for every update to these services. 
